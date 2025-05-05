@@ -154,8 +154,8 @@ if tweakAirPrice then
 		end
 	end
 	--Snowflake price includes Epic Dragon.
-	local eDragon = UnitDefs['corcrwt4']
-	eDragon.buildtime = math.floor(eDragon.buildtime * ((mcMul + airECMul) * 0.5))
+	local eDragon = uDefs['corcrwt4']
+	eDragon.buildtime = math.floor(eDragon.buildtime * ((airMCMul + airECMul) * 0.5))
 	eDragon.metalcost = eDragon.metalcost * airMCMul
 	eDragon.energycost = eDragon.energycost * airECMul
 end
