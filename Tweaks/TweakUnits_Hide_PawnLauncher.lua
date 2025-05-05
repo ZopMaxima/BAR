@@ -1,4 +1,4 @@
 --Hide PawnLauncher
 {
-armbotrail={health = 0},
+armbotrail={health=0},
 }
