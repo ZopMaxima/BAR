@@ -155,9 +155,11 @@ if tweakAirPrice then
 	end
 	--Snowflake price includes Epic Dragon.
 	local eDragon = uDefs['corcrwt4']
-	eDragon.buildtime = math.floor(eDragon.buildtime * ((airMCMul + airECMul) * 0.5))
-	eDragon.metalcost = eDragon.metalcost * airMCMul
-	eDragon.energycost = eDragon.energycost * airECMul
+	if eDragon then
+		eDragon.buildtime = math.floor(eDragon.buildtime * ((airMCMul + airECMul) * 0.5))
+		eDragon.metalcost = eDragon.metalcost * airMCMul
+		eDragon.energycost = eDragon.energycost * airECMul
+	end
 end
 
 --Transport paratrooper.
