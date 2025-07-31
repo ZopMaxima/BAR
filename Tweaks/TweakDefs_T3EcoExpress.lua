@@ -114,6 +114,10 @@ if tweakT3Afus then
 	aT3FusDef.buildpic = bp
 	cT3FusDef.buildpic = bp
 	lT3FusDef.buildpic = bp
+	local explode = 'advancedFusionExplosionSelfd'
+	aT3FusDef.explodeas = explode
+	cT3FusDef.explodeas = explode
+	lT3FusDef.explodeas = explode
 end
 
 --Converter size and price reduction.
@@ -167,6 +171,9 @@ if tweakT3Conv then
 	--Leg
 	mergeMapRec(lT3CDef, aT3CDef)
 	remodel(lT3CDef, 'CORUWFUS', true, true)
+	lT3CDef.collisionvolumeoffsets = cT3CDef.collisionvolumeoffsets
+	lT3CDef.collisionvolumescales = cT3CDef.collisionvolumescales
+	lT3CDef.collisionvolumetype = cT3CDef.collisionvolumetype
 	--Arm unique pass.
 	local foot = { footprintx = 6, footprintz = 4 }
 	mergeMap(aT3CDef, foot)
