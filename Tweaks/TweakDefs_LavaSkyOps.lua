@@ -1,18 +1,13 @@
 --Lava Sky Ops (Zop)
 local uDefs = UnitDefs or {}
 local cps = 'customparams'
-local fds = 'featuredefs'
 local wds = 'weapondefs'
-local aACons = {'armaca','armack','armacv'}
-local cACons = {'coraca','corack','coracv'}
-local lACons = {'legaca','legack','legacv'}
 
 local tweakSeaPlane = true
 local tweakTorpedo = true
 local tweakAirPrice = true
 local tweakAirTrans = true
 local tweakFlags = true
-local tweakT3Eco = true
 
 local function round10(n)
 	return math.floor(n * 0.1) * 10
@@ -26,30 +21,11 @@ local function unwater(id)
 	end
 end
 
-local function rmvID(id)
-	local def = UnitDefs[id]
-	if def then
-		def.health = 0
-	end
-end
-
 local function addBO(builderID, id)
 	local bDef = UnitDefs[builderID]
 	local uDef = UnitDefs[id]
 	if bDef and uDef then
 		bDef.buildoptions[#bDef.buildoptions + 1] = id
-	end
-end
-
-local function addBOArr(builderIDs, id)
-	for i = 1, #builderIDs do
-		addBO(builderIDs[i], id)
-	end
-end
-
-local function mergeMap(l, r)
-	for k, v in pairs(r) do
-		l[k] = v
 	end
 end
 
@@ -196,9 +172,6 @@ if tweakFlags then
 	local afsDef = uDefs['armfepocht4']
 	local cfsDef = uDefs['corfblackhyt4']
 	local lfsDef = uDefs['legfortt4']
-	afsDef.health = afsDef.health * 1.5
-	cfsDef.health = cfsDef.health * 1.5
-	lfsDef.health = lfsDef.health * 1.5
 	afsDef.speed = afsDef.speed * 1.25
 	cfsDef.speed = cfsDef.speed * 1.25
 	lfsDef.speed = lfsDef.speed * 1.25

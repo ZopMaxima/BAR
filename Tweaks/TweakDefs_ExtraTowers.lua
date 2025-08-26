@@ -102,6 +102,8 @@ if tweakQuadLT then
 	end
 	setDesc(aLTDef, 'Quad Beamer', 'Heavy Beam Laser Turret')
 	setDesc(lLTDef, 'Quad Cacophony', 'Heavy Machine Gun Turret')
+	aLTDef.icontype = cLT
+	lLTDef.icontype = cLT
 	addBOArr(aACons, aLT)
 	addBOArr(lACons, lLT)
 end
@@ -127,6 +129,7 @@ if tweakLegEpic then
 	lDoomWDef3.reloadtime = lDoomWDef3.reloadtime * 0.375
 	lDoomWDef3.rgbcolor = '1 0.8 0'
 	setDesc(lDoomDef, 'Trident', 'Super Heavy Railgun Defense')
+	lDoomDef.icontype = cDoom
 	addBOArr(lACons, lDoom)
 	addBO('legcomlvl8', lDoom)
 	addBO('legcomlvl9', lDoom)
