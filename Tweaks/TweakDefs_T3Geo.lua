@@ -117,7 +117,7 @@ if tweakT3Geo then
 	local lt3Def = uDefs[lt3]
 	local t3Name = 'Epic Geothermal Powerplant'
 	local t3DescPfx = 'Produces '
-	local t3DescSfx = ' Energy (Extremely Hazardous)'
+	local t3DescSfx = ' Energy (Extremely Hazardous) (Concept by djarshi)'
 	--Arm
 	mulGeoTier(at1Def, at2Def, at3Def)
 	mergeDeflector(at3Def, uDefs['armgatet3'])

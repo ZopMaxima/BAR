@@ -82,12 +82,9 @@ if tweakT3Afus then
 	local aAFusDef = uDefs['armafus']
 	local cAFusDef = uDefs['corafus']
 	local lAFusDef = uDefs['legafus']
-	local aT3Fus = 'armafust3'
-	local cT3Fus = 'corafust3'
-	local lT3Fus = 'legafust3'
-	local aT3FusDef = uDefs[aT3Fus]
-	local cT3FusDef = uDefs[cT3Fus]
-	local lT3FusDef = uDefs[lT3Fus]
+	local aT3FusDef = uDefs['armafust3']
+	local cT3FusDef = uDefs['corafust3']
+	local lT3FusDef = uDefs['legafust3']
 	local hp = 'health'
 	aT3FusDef[hp] = aAFusDef[hp] * t3HPMul
 	cT3FusDef[hp] = cAFusDef[hp] * t3HPMul
@@ -114,10 +111,10 @@ if tweakT3Afus then
 	aT3FusDef.buildpic = bp
 	cT3FusDef.buildpic = bp
 	lT3FusDef.buildpic = bp
-	local explode = 'advancedFusionExplosionSelfd'
-	aT3FusDef.explodeas = explode
-	cT3FusDef.explodeas = explode
-	lT3FusDef.explodeas = explode
+	local ex = 'advancedFusionExplosionSelfd'
+	aT3FusDef.explodeas = ex
+	cT3FusDef.explodeas = ex
+	lT3FusDef.explodeas = ex
 end
 
 --Converter size and price reduction.
@@ -125,12 +122,9 @@ if tweakT3Conv then
 	local timeMul = 5
 	local costMul = 10
 	local conDef = uDefs['cormmkr']
-	local aT3C = 'armmmkrt3'
-	local cT3C = 'cormmkrt3'
-	local lT3C = 'legadveconvt3'
-	local aT3CDef = uDefs[aT3C]
-	local cT3CDef = uDefs[cT3C]
-	local lT3CDef = uDefs[lT3C]
+	local aT3CDef = uDefs['armmmkrt3']
+	local cT3CDef = uDefs['cormmkrt3']
+	local lT3CDef = uDefs['legadveconvt3']
 	local t3ConKVP = {
 		buildtime = conDef.buildtime * timeMul,
 		metalcost = round10(conDef.metalcost * costMul * (cT3CDef[cps].energyconv_efficiency / conDef[cps].energyconv_efficiency)),

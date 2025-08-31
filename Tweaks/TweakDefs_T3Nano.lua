@@ -86,7 +86,7 @@ if tweakT3Nano then
 		local ct3Def = uDefs[ct3]
 		local lt3Def = uDefs[lt3]
 		local t3Name = 'Epic Construction Turret'
-		local t3Desc = 'Assist & Repair in massive radius.'
+		local t3Desc = 'Assist & Repair in massive radius. (Concept by djarshi)'
 		--Arm
 		unwater(at3)
 		setDesc(at3Def, t3Name, t3Desc)
