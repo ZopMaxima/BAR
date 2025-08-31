@@ -156,7 +156,6 @@ end
 
 --Hide Nukes
 if noNukes then
-	--TODO Enable Rampart
 	rmvID('armsilo')
 	rmvID('corsilo')
 	rmvID('legsilo')
@@ -167,6 +166,9 @@ if noNukes then
 	rmvID('legabm')
 	rmvID('armscab')
 	rmvID('cormabm')
+	uDefs['legrampart'][wpn][1] = uDefs['legrampart'][wpn][2]
+	uDefs['legrampart'][wpn][2] = nil
+	uDefs['legrampart'][wds]['fmd_rocket'].interceptor = nil
 end
 
 --Hide Tac Nukes
