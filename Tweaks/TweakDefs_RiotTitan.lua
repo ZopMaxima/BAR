@@ -119,13 +119,14 @@ if tweakShieldTitan then
 	wDefLazer.reloadtime = 0.5
 	wDefLazer.energypershot = wDefLazer.energypershot * 2
 	wDefLazer.range = round10(shieldRad * 1.4)
-	wDefLazer.damage.default = wDefLazer.damage.default * 0.4
+	wDefLazer.damage.default = wDefLazer.damage.default * 0.375
 	--Backpack
 	def[wpn][3].def = uDefs['legcomt2def'][wpn][3].def
 	local wDefEMP = def[wds]['empgrenade']
 	wDefEMP.projectiles = 3
 	wDefEMP.sprayangle = 3600
 	wDefEMP.commandfire = false
+	wDefEMP.reloadtime = wDefEMP.reloadtime * 1.5
 	wDefEMP.range = wDefArms.range
 	wDefEMP.weaponvelocity = wDefArms.weaponvelocity * 0.5
 	wDefEMP.damage.default = 10000
