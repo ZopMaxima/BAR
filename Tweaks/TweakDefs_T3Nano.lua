@@ -1,15 +1,24 @@
 --T3 Nano Turrets (Zop)
 --Concept by Djarshi / Txpera
+local mods = Spring.GetModOptions()
 local uDefs = UnitDefs or {}
 local cps = 'customparams'
-local aACons = {'armaca','armack','armacv'}
-local cACons = {'coraca','corack','coracv'}
+local aACons = {'armaca','armack','armacv','armacsub'}
+local cACons = {'coraca','corack','coracv','coracsub'}
 local lACons = {'legaca','legack','legacv'}
 
+local hasExtras = mods.experimentalextraunits
+local noSea = mods.map_waterislava
+
+local passiveTweak = true --Yield to existing tweaks.
 local tweakT3Nano = true
 
 local function round10(n)
 	return math.floor(n * 0.1) * 10
+end
+
+local function extrapolate(t1, t2)
+	return round10(t2 * (t2 / t1))
 end
 
 local function unwater(id)
@@ -20,17 +29,17 @@ local function unwater(id)
 	end
 end
 
-local function addBO(builderID, id)
-	local bDef = UnitDefs[builderID]
+local function addBO(conID, id)
+	local bDef = UnitDefs[conID]
 	local uDef = UnitDefs[id]
-	if bDef and uDef then
-		bDef.buildoptions[#bDef.buildoptions + 1] = id
+	if bDef and uDef and (not table.contains(bDef.buildoptions, id)) then
+		table.insert(bDef.buildoptions, id)
 	end
 end
 
-local function addBOArr(builderIDs, id)
-	for i = 1, #builderIDs do
-		addBO(builderIDs[i], id)
+local function addBOArr(conIDs, id)
+	for i = 1, #conIDs do
+		addBO(conIDs[i], id)
 	end
 end
 
@@ -48,30 +57,27 @@ local function setDesc(def, name, tip)
 	end
 end
 
-local function extrapolate(t1, t2)
-	return round10(t2 * (t2 / t1))
-end
-
---Multiply and overwrite stats.
-if tweakT3Nano then
-	local footprintMul = 1.25
+--Extrapolate nano turret stats.
+local yieldNano = passiveTweak and (table.contains(uDefs, 'armnanotct3') or table.contains(uDefs, 'armnanotc3'))
+if hasExtras and tweakT3Nano and (not yieldNano) then
+	local footMul = 1.25
 	local at1Def = uDefs['armnanotc']
 	local at2Def = uDefs['armnanotct2']
-	local aBaseDef = uDefs['armrespawn']
-	local cBaseDef = uDefs['correspawn']
-	local lBaseDef = uDefs['legnanotcbase']
-	if at1Def and at2Def and aBaseDef then
-		local statOverride = {
+	if at1Def and at2Def then
+		local ex = 'hugeBuildingExplosionGeneric'
+		local override = {
 			icontype = 'armrespawn',
-			metalcost = extrapolate(at1Def.metalcost, at2Def.metalcost) * footprintMul,
-			energycost = extrapolate(at1Def.energycost, at1Def.energycost) * footprintMul,
-			buildtime = extrapolate(at1Def.buildtime, at2Def.buildtime) * footprintMul,
-			workertime = extrapolate(at1Def.workertime, at2Def.workertime) * footprintMul,
+			metalcost = extrapolate(at1Def.metalcost, at2Def.metalcost) * footMul,
+			energycost = extrapolate(at1Def.energycost, at2Def.energycost) * footMul,
+			buildtime = extrapolate(at1Def.buildtime, at2Def.buildtime) * footMul,
+			workertime = extrapolate(at1Def.workertime, at2Def.workertime) * footMul,
 			builddistance = extrapolate(at1Def.builddistance, at2Def.builddistance),
 			sightdistance = extrapolate(at1Def.sightdistance, at2Def.sightdistance),
 			health = extrapolate(at1Def.health, at2Def.health),
-			explodeas = 'hugeBuildingExplosionGeneric',
-			selfdestructas = 'hugeBuildingExplosionGenericSelfd',
+			maxwaterdepth = 1000000,
+			minwaterdepth = -1000000,
+			explodeas = ex,
+			selfdestructas = ex..'Selfd',
 			customparams = {
 				techlevel = 3
 			}
@@ -79,25 +85,24 @@ if tweakT3Nano then
 		local at3 = 'armnanotct3'
 		local ct3 = 'cornanotct3'
 		local lt3 = 'legnanotct3'
-		uDefs[at3] = table.merge(aBaseDef, statOverride)
-		uDefs[ct3] = table.merge(cBaseDef, statOverride)
-		uDefs[lt3] = table.merge(lBaseDef, statOverride)
+		uDefs[at3] = table.merge(uDefs['armrespawn'], override)
+		uDefs[ct3] = table.merge(uDefs['correspawn'], override)
+		uDefs[lt3] = table.merge(uDefs['legnanotcbase'], override)
 		local at3Def = uDefs[at3]
 		local ct3Def = uDefs[ct3]
 		local lt3Def = uDefs[lt3]
+		if noSea then
+			unwater(at3)
+			unwater(ct3)
+			unwater(lt3)
+		end
 		local t3Name = 'Epic Construction Turret'
-		local t3Desc = 'Assist & Repair in massive radius. (Concept by djarshi)'
-		--Arm
-		unwater(at3)
+		local t3Desc = 'Assist & Repair in massive radius. (OP by djarshi)'
 		setDesc(at3Def, t3Name, t3Desc)
-		addBOArr(aACons, at3)
-		--Cor
-		unwater(ct3)
 		setDesc(ct3Def, t3Name, t3Desc)
-		addBOArr(cACons, ct3)
-		--Leg
-		unwater(lt3)
 		setDesc(lt3Def, t3Name, t3Desc)
+		addBOArr(aACons, at3)
+		addBOArr(cACons, ct3)
 		addBOArr(lACons, lt3)
 	end
 end
