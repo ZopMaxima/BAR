@@ -79,6 +79,7 @@ if tweakShieldTitan then
 	def.buildoptions = {}
 	def.cancapture = false
 	def.capturable = true
+	def.reclaimable = true
 	def.metalmake = 0
 	def.energymake = 0
 	def.energystorage = 0
