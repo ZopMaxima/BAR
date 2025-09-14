@@ -12,6 +12,7 @@ local lACons = {'legaca','legack','legacv'}
 
 local hasScavs = mods.scavunitsforplayers
 local hasExtras = mods.experimentalextraunits
+local hasHoverTide = mods.map_lavatiderhythm == 'enabled' and mods.map_lavahighlevel <= 1 and mods.map_lavahighdwell <= 1
 
 local noLRPC = mods.unit_restrictions_nolrpc
 local noLOLCannon = noLRPC or mods.unit_restrictions_noendgamelrpc
@@ -22,7 +23,6 @@ local noSea = mods.map_waterislava
 local noAir = mods.unit_restrictions_noair
 
 local removeExcess = true --Delete unpopular units.
-local passiveTweak = true --Yield to existing tweaks.
 
 local tweakBehemoth = true
 local tweakWrecks = true
@@ -62,10 +62,10 @@ local function rmvID(id)
 end
 
 local function addBO(conID, id)
-	local bDef = UnitDefs[conID]
+	local cDef = UnitDefs[conID]
 	local uDef = UnitDefs[id]
-	if bDef and uDef and (not table.contains(bDef.buildoptions, id)) then
-		table.insert(bDef.buildoptions, id)
+	if cDef and uDef and not cDef.buildoptions[id] then
+		table.insert(cDef.buildoptions, id)
 	end
 end
 
@@ -75,13 +75,13 @@ local function addBOArr(conIDs, id)
 	end
 end
 
-local function rmvBO(builderID, id)
-	local bDef = UnitDefs[builderID]
+local function rmvBO(conID, id)
+	local cDef = UnitDefs[conID]
 	local uDef = UnitDefs[id]
-	if bDef and uDef then
-		for k, v in pairs(bDef.buildoptions) do
+	if cDef and uDef then
+		for k, v in pairs(cDef.buildoptions) do
 			if v == id then
-				table.remove(bDef.buildoptions, k)
+				table.remove(cDef.buildoptions, k)
 				break
 			end
 		end
@@ -99,7 +99,7 @@ local function mergeRec(def, ref)
 end
 
 local function setDesc(def, name, tip)
-	local latin = {'en', 'fr', 'de'}
+	local latin = {'en','fr','de'}
 	if def then
 		for i = 1, #latin do
 			if name then
@@ -126,7 +126,7 @@ local function remodel(def, name, hasDead, hasDecal)
 	end
 end
 
---Hide LRPC
+--Deleted Units
 if noLRPC then
 	rmvID('armbrtha')
 	rmvID('corint')
@@ -134,20 +134,14 @@ if noLRPC then
 	rmvID('leglrpc')
 	rmvID('legelrpcmech')
 end
-
---Hide LOL Cannon
 if noLOLCannon then
 	rmvID('armvulc')
 	rmvID('corbuzz')
 	rmvID('legstarfall')
 end
-
---Hide Pawn Launcher
 if noPawnLauncher then
 	rmvID('armbotrail')
 end
-
---Hide Nukes
 if noNukes then
 	rmvID('armsilo')
 	rmvID('corsilo')
@@ -164,15 +158,11 @@ if noNukes then
 	ramp[wpn][2] = nil
 	ramp[wds]['fmd_rocket'].interceptor = nil
 end
-
---Hide Tac Nukes
 if noTacs then
 	rmvID('armemp')
 	rmvID('cortron')
 	rmvID('legperdition')
 end
-
---Remove clutter.
 if removeExcess then
 	rmvBOArr(aACons, 'armckfus')
 	rmvBOArr(lACons, 'cormexp')
@@ -180,12 +170,19 @@ end
 
 --Disable sea and water landing.
 if noSea then
+	local mwd = 'minwaterdepth'
 	for id, def in pairs(uDefs) do
-		local minWD = def.minwaterdepth
-		if minWD then
-			if minWD > 0 then
+		local min = def[mwd]
+		if hasHoverTide and min then
+			local isEco = def.energymake or def.metalmake or def[cps].unitgroup == 'energy' or def[cps].unitgroup == 'metal'
+			if isEco or def.buildoptions or def.waterline == nil then
 				rmvID(id)
+			else
+				def.waterline = 0
+				def[mwd] = 1
 			end
+		elseif min and min > 0 then
+			rmvID(id)
 		end
 		if def.cruisealtitude then
 			if def.cansubmerge then
@@ -195,7 +192,13 @@ if noSea then
 				def.maxwaterdepth = 0
 			end
 		end
+		--Metal
+		if def[cps].metal_extractor then
+			def.maxwaterdepth = 0
+		end
 	end
+	--Geo
+	uDefs['armuwgeo'][mwd] = uDefs['coruwgeo'][mwd]
 end
 
 --Behemoth Nerf
@@ -206,6 +209,7 @@ if tweakBehemoth then
 		mcMul = mcMul + 1
 	end
 	def.metalcost = def.metalcost * mcMul
+	def.buildtime = def.buildtime * mcMul
 	def[cps].paralyzemultiplier = 2.5
 end
 
@@ -279,13 +283,13 @@ end
 
 --Legion epic defense.
 if hasScavs then
-	local cDoom = 'cordoomt3'
-	local lDoom = 'legdoomt3'
+	local cT4 = 'cordoomt3'
+	local lT4 = 'legdoomt3'
 	local cEvos = {'corcomlvl8', 'corcomlvl9', 'corcomlvl10'}
 	local lEvos = {'legcomlvl8', 'legcomlvl9', 'legcomlvl10'}
 	if tweakLegEpic then
-		uDefs[lDoom] = table.copy(uDefs[cDoom])
-		local def = uDefs[lDoom]
+		uDefs[lT4] = table.copy(uDefs[cT4])
+		local def = uDefs[lT4]
 		local wDef1 = def[wds]['armagmheat']
 		local wDef2 = def[wds]['armageddon_blue_laser']
 		local wDef3 = def[wds]['armageddon_green_laser']
@@ -300,23 +304,22 @@ if hasScavs then
 		wDef3.reloadtime = wDef3.reloadtime * 0.375
 		wDef3.rgbcolor = '1 0.8 0'
 		setDesc(def, 'Trident', 'Super Heavy Railgun Defense')
-		def.icontype = cDoom
-		addBOArr(lACons, lDoom)
-		addBOArr(lEvos, lDoom)
+		def.icontype = cT4
+		addBOArr(lACons, lT4)
+		addBOArr(lEvos, lT4)
 		--Space Mod
-		addBO('legoc', lDoom)
+		addBO('legoc', lT4)
 	else
-		addBOArr(lACons, cDoom)
-		addBOArr(lEvos, cDoom)
+		addBOArr(lACons, cT4)
+		addBOArr(lEvos, cT4)
 		--Space Mod
-		addBO('legoc', cDoom)
+		addBO('legoc', cT4)
 	end
-	addBOArr(cEvos, cDoom)
+	addBOArr(cEvos, cT4)
 end
 
---Extrapolate nano turret stats.
-local yieldNano = passiveTweak and (table.contains(uDefs, 'armnanotct3') or table.contains(uDefs, 'armnanotc3'))
-if hasExtras and tweakT3Nano and (not yieldNano) then
+--T3 Nano
+if hasExtras and tweakT3Nano and not uDefs['armnanotct3'] then
 	local footMul = 1.25
 	local at1Def = uDefs['armnanotc']
 	local at2Def = uDefs['armnanotct2']
@@ -383,10 +386,9 @@ local function mergeShield(def, ref)
 	end
 end
 
---Extrapolate geo stats.
-local yieldGeo = passiveTweak and table.contains(uDefs, 'armageot3')
-if hasExtras and tweakT3Geo and (not yieldGeo) then
-	--TODO Move prude to combat, keep shockwave, too many Arm eco buildings.
+--T3 Geo
+if hasExtras and tweakT3Geo and not uDefs['armageot3'] then
+	--TODO Move prude to combat, keep shockwave.
 	rmvID('armshockwave')
 	local at2Def = uDefs['armageo']
 	local ct2Def = uDefs['corageo']
