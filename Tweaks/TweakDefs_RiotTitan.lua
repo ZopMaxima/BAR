@@ -10,33 +10,19 @@ local function round10(n)
 	return math.floor(n * 0.1) * 10
 end
 
-local function addBO(builderID, id)
-	local bDef = UnitDefs[builderID]
+local function addBO(conID, id)
+	local cDef = UnitDefs[conID]
 	local uDef = UnitDefs[id]
-	if bDef and uDef then
-		bDef.buildoptions[#bDef.buildoptions + 1] = id
+	if cDef and uDef and not cDef.buildoptions[id] then
+		table.insert(cDef.buildoptions, id)
 	end
 end
 
-local function mergeMap(l, r)
-	for k, v in pairs(r) do
-		l[k] = v
-	end
+local function mergeRec(def, ref)
+	table.mergeInPlace(def, ref, true)
 end
 
-local function mergeMapRec(l, r)
-	for k, v in pairs(r) do
-		if type(v) == 'table' then
-			local lk = l[k] or {}
-			mergeMapRec(lk, v);
-			l[k] = lk
-		else
-			l[k] = v
-		end
-	end
-end
-
-local function clearMap(m)
+local function clear(m)
 	for k, v in pairs(m) do
 		m[k] = nil
 	end
@@ -56,18 +42,12 @@ local function setDesc(def, name, tip)
 	end
 end
 
-local function addUnit(id, copyID)
-	local def = UnitDefs[id] or {}
-	mergeMapRec(def, UnitDefs[copyID])
-	UnitDefs[id] = def
-	return def
-end
-
 --A titan that relies on energy to tank.
 if tweakShieldTitan then
 	local newID = 'armbanthx'
-	local def = addUnit(newID, 'legcomt2def')
-	mergeMapRec(def, uDefs['armbanth'])
+	uDefs[newID] = table.copy(uDefs['legcomt2def'])
+	local def = uDefs[newID]
+	mergeRec(def, uDefs['armbanth'])
 	setDesc(def, 'Riot Titan', 'Heavy-Shielded Riot Mech')
 	def.icontype = 'armbanth'
 	def[cps].iscommander = nil
@@ -83,9 +63,9 @@ if tweakShieldTitan then
 	def.metalmake = 0
 	def.energymake = 0
 	def.energystorage = 0
-	def.metalcost = def.metalcost * 1.5
-	def.energycost = def.energycost * 2.5
-	def.buildtime = def.buildtime * 2
+	def.metalcost = def.metalcost * 2
+	def.energycost = def.energycost * 3
+	def.buildtime = def.buildtime * 2.5
 	def.radardistance = 0
 	def.sonardistance = 0
 	def[cps].paralyzemultiplier = 0.25
@@ -100,8 +80,8 @@ if tweakShieldTitan then
 	--Arms
 	local wDefArms = def[wds]['armbantha_fire']
 	local wDefRiot = uDefs['armmav'][wds]['armmav_weapon']
-	clearMap(wDefArms)
-	mergeMapRec(wDefArms, wDefRiot)
+	clear(wDefArms)
+	mergeRec(wDefArms, wDefRiot)
 	wDefArms.projectiles = 4
 	wDefArms.sprayangle = 1800
 	wDefArms.weaponvelocity = wDefArms.weaponvelocity * 1.5
@@ -112,7 +92,7 @@ if tweakShieldTitan then
 	--Shoulder
 	local wDefLazer = def[wds]['tehlazerofdewm']
 	local wDefLight = uDefs['armthor'][wds]['thunder']
-	mergeMapRec(wDefLazer, wDefLight)
+	mergeRec(wDefLazer, wDefLight)
 	wDefLazer.collidefriendly = false
 	wDefLazer.beamtime = nil
 	wDefLazer.burst = 15
