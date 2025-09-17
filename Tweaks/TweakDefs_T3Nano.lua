@@ -7,7 +7,6 @@ local aACons = {'armaca','armack','armacv','armacsub'}
 local cACons = {'coraca','corack','coracv','coracsub'}
 local lACons = {'legaca','legack','legacv'}
 
-local hasExtras = mods.experimentalextraunits
 local noSea = mods.map_waterislava
 
 local tweakT3Nano = true
@@ -57,7 +56,7 @@ local function setDesc(def, name, tip)
 end
 
 --Extrapolate nano turret stats.
-if hasExtras and tweakT3Nano and not uDefs['armnanotct3'] then
+if tweakT3Nano and not uDefs['armnanotct3'] then
 	local footMul = 1.25
 	local at1Def = uDefs['armnanotc']
 	local at2Def = uDefs['armnanotct2']

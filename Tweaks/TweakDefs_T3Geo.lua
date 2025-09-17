@@ -10,7 +10,6 @@ local aACons = {'armaca','armack','armacv','armacsub'}
 local cACons = {'coraca','corack','coracv','coracsub'}
 local lACons = {'legaca','legack','legacv'}
 
-local hasExtras = mods.experimentalextraunits
 local noSea = mods.map_waterislava
 
 local tweakT3Geo = true
@@ -99,7 +98,7 @@ local function mergeShield(def, ref)
 end
 
 --Extrapolate geo stats.
-if hasExtras and tweakT3Geo and not uDefs['armageot3'] then
+if tweakT3Geo and not uDefs['armageot3'] then
 	local at2Def = uDefs['armageo']
 	local ct2Def = uDefs['corageo']
 	local lt2Def = uDefs['legageo']
