@@ -10,7 +10,6 @@ local lACons = {'legaca','legack','legacv'}
 local hasExtras = mods.experimentalextraunits
 local noSea = mods.map_waterislava
 
-local passiveTweak = true --Yield to existing tweaks.
 local tweakT3Nano = true
 
 local function round10(n)
@@ -30,10 +29,10 @@ local function unwater(id)
 end
 
 local function addBO(conID, id)
-	local bDef = UnitDefs[conID]
+	local cDef = UnitDefs[conID]
 	local uDef = UnitDefs[id]
-	if bDef and uDef and (not table.contains(bDef.buildoptions, id)) then
-		table.insert(bDef.buildoptions, id)
+	if cDef and uDef and not cDef.buildoptions[id] then
+		table.insert(cDef.buildoptions, id)
 	end
 end
 
@@ -58,8 +57,7 @@ local function setDesc(def, name, tip)
 end
 
 --Extrapolate nano turret stats.
-local yieldNano = passiveTweak and (table.contains(uDefs, 'armnanotct3') or table.contains(uDefs, 'armnanotc3'))
-if hasExtras and tweakT3Nano and (not yieldNano) then
+if hasExtras and tweakT3Nano and not uDefs['armnanotct3'] then
 	local footMul = 1.25
 	local at1Def = uDefs['armnanotc']
 	local at2Def = uDefs['armnanotct2']

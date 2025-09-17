@@ -13,7 +13,6 @@ local lACons = {'legaca','legack','legacv'}
 local hasExtras = mods.experimentalextraunits
 local noSea = mods.map_waterislava
 
-local passiveTweak = true --Yield to existing tweaks.
 local tweakT3Geo = true
 
 local function round10(n)
@@ -39,10 +38,10 @@ local function unwater(id)
 end
 
 local function addBO(conID, id)
-	local bDef = UnitDefs[conID]
+	local cDef = UnitDefs[conID]
 	local uDef = UnitDefs[id]
-	if bDef and uDef and (not table.contains(bDef.buildoptions, id)) then
-		table.insert(bDef.buildoptions, id)
+	if cDef and uDef and not cDef.buildoptions[id] then
+		table.insert(cDef.buildoptions, id)
 	end
 end
 
@@ -100,8 +99,7 @@ local function mergeShield(def, ref)
 end
 
 --Extrapolate geo stats.
-local yieldGeo = passiveTweak and table.contains(uDefs, 'armageot3')
-if hasExtras and tweakT3Geo and (not yieldGeo) then
+if hasExtras and tweakT3Geo and not uDefs['armageot3'] then
 	local at2Def = uDefs['armageo']
 	local ct2Def = uDefs['corageo']
 	local lt2Def = uDefs['legageo']
