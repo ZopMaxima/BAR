@@ -1,14 +1,13 @@
---Lava Multi Patch (Zop)
---T3 Nano/Geo concept by djarshi/Txpera
+--Lava QoL Patch (Zop)
 local mods = Spring.GetModOptions()
 local uDefs = UnitDefs or {}
 local cps = 'customparams'
 local fds = 'featuredefs'
 local wds = 'weapondefs'
 local wpn = 'weapons'
-local aACons = {'armaca','armack','armacv','armacsub'}
-local cACons = {'coraca','corack','coracv','coracsub'}
-local lACons = {'legaca','legack','legacv'}
+local aACons = {'armaca','armack','armacv','armacsub','armoc'} --oc Orbital Constructor
+local cACons = {'coraca','corack','coracv','coracsub','coroc'}
+local lACons = {'legaca','legack','legacv','legoc'}
 
 local hasScavs = mods.scavunitsforplayers
 local hasExtras = mods.experimentalextraunits
@@ -16,42 +15,22 @@ local hasHoverTide = mods.map_lavatiderhythm == 'enabled' and mods.map_lavahighl
 
 local noLRPC = mods.unit_restrictions_nolrpc
 local noLOLCannon = noLRPC or mods.unit_restrictions_noendgamelrpc
-local noPawnLauncher = noLOLCannon or true --TODO
+local noPawnLauncher = noLOLCannon or true --TODO Pawn Bounce Thug Battery etc...
 local noNukes = mods.unit_restrictions_nonukes
 local noTacs = mods.unit_restrictions_notacnukes
 local noSea = mods.map_waterislava
 local noAir = mods.unit_restrictions_noair
 
-local removeExcess = true --Delete unpopular units.
+local removeExcess = true --Delete unpopular units to reduce constructor pages.
 
 local tweakBehemoth = true
 local tweakWrecks = true
 local tweakMini = true
 local tweakQuadLT = true
 local tweakLegEpic = true
-local tweakT3Nano = true
-local tweakT3Geo = true
 
 local function round10(n)
 	return math.floor(n * 0.1) * 10
-end
-
-local function extrapolate(t1, t2)
-	return round10(t2 * (t2 / t1))
-end
-
-local function mulTier(t1Def, t2Def, t3Def, stat)
-	if t1Def and t2Def and t3Def then
-		t3Def[stat] = extrapolate(t1Def[stat], t2Def[stat])
-	end
-end
-
-local function unwater(id)
-	local def = UnitDefs[id]
-	if def then
-		def.minwaterdepth = -1000000
-		def.maxwaterdepth = 0
-	end
 end
 
 local function rmvID(id)
@@ -112,20 +91,6 @@ local function setDesc(def, name, tip)
 	end
 end
 
-local function remodel(def, name, hasDead, hasDecal)
-	if def then
-		def.buildpic = name..'.DDS'
-		def.objectname = 'Units/'..name..'.s3o'
-		def.script = 'Units/'..name..'.cob'
-		if hasDead then
-			def[fds].dead.object = 'Units/'..string.lower(name)..'_dead.s3o'
-		end
-		if hasDecal then
-			def[cps].buildinggrounddecaltype = 'decals/'..string.lower(name)..'_aoplane.dds'
-		end
-	end
-end
-
 --Deleted Units
 if noLRPC then
 	rmvID('armbrtha')
@@ -157,6 +122,7 @@ if noNukes then
 	ramp[wpn][1] = ramp[wpn][2]
 	ramp[wpn][2] = nil
 	ramp[wds]['fmd_rocket'].interceptor = nil
+	--TODO Haven.
 end
 if noTacs then
 	rmvID('armemp')
@@ -166,11 +132,17 @@ end
 if removeExcess then
 	rmvBOArr(aACons, 'armckfus')
 	rmvBOArr(lACons, 'cormexp')
+	if hasExtras and hasScavs then
+		--TODO Move prude to combat, keep shockwave.
+		rmvID('armshockwave')
+	end
 end
 
 --Disable sea and water landing.
 if noSea then
 	local mwd = 'minwaterdepth'
+	--Arm Geo Fix
+	uDefs['armuwgeo'][mwd] = uDefs['coruwgeo'][mwd]
 	for id, def in pairs(uDefs) do
 		local min = def[mwd]
 		if hasHoverTide and min then
@@ -197,8 +169,6 @@ if noSea then
 			def.maxwaterdepth = 0
 		end
 	end
-	--Geo
-	uDefs['armuwgeo'][mwd] = uDefs['coruwgeo'][mwd]
 end
 
 --Behemoth Nerf
@@ -215,9 +185,9 @@ end
 
 --Smaller Wrecks
 if tweakWrecks then
-	local scale = 0.75
+	local scale = 0.5
 	if noAir then
-		scale = 0.5
+		scale = 0.25
 	end
 	for id, def in pairs(uDefs) do
 		if def.canmove and def[fds] and def[fds].dead then
@@ -276,9 +246,6 @@ if hasScavs and tweakQuadLT then
 	lDef.icontype = cLT
 	addBOArr(aACons, aLT)
 	addBOArr(lACons, lLT)
-	--Space Mod
-	addBO('armoc', aLT)
-	addBO('legoc', lLT)
 end
 
 --Legion epic defense.
@@ -307,151 +274,9 @@ if hasScavs then
 		def.icontype = cT4
 		addBOArr(lACons, lT4)
 		addBOArr(lEvos, lT4)
-		--Space Mod
-		addBO('legoc', lT4)
 	else
 		addBOArr(lACons, cT4)
 		addBOArr(lEvos, cT4)
-		--Space Mod
-		addBO('legoc', cT4)
 	end
 	addBOArr(cEvos, cT4)
-end
-
---T3 Nano
-if hasExtras and tweakT3Nano and not uDefs['armnanotct3'] then
-	local footMul = 1.25
-	local at1Def = uDefs['armnanotc']
-	local at2Def = uDefs['armnanotct2']
-	if at1Def and at2Def then
-		local ex = 'hugeBuildingExplosionGeneric'
-		local override = {
-			icontype = 'armrespawn',
-			metalcost = extrapolate(at1Def.metalcost, at2Def.metalcost) * footMul,
-			energycost = extrapolate(at1Def.energycost, at2Def.energycost) * footMul,
-			buildtime = extrapolate(at1Def.buildtime, at2Def.buildtime) * footMul,
-			workertime = extrapolate(at1Def.workertime, at2Def.workertime) * footMul,
-			builddistance = extrapolate(at1Def.builddistance, at2Def.builddistance),
-			sightdistance = extrapolate(at1Def.sightdistance, at2Def.sightdistance),
-			health = extrapolate(at1Def.health, at2Def.health),
-			maxwaterdepth = 1000000,
-			minwaterdepth = -1000000,
-			explodeas = ex,
-			selfdestructas = ex..'Selfd',
-			customparams = {
-				techlevel = 3
-			}
-		}
-		local at3 = 'armnanotct3'
-		local ct3 = 'cornanotct3'
-		local lt3 = 'legnanotct3'
-		uDefs[at3] = table.merge(uDefs['armrespawn'], override)
-		uDefs[ct3] = table.merge(uDefs['correspawn'], override)
-		uDefs[lt3] = table.merge(uDefs['legnanotcbase'], override)
-		local at3Def = uDefs[at3]
-		local ct3Def = uDefs[ct3]
-		local lt3Def = uDefs[lt3]
-		if noSea then
-			unwater(at3)
-			unwater(ct3)
-			unwater(lt3)
-		end
-		local t3Name = 'Epic Construction Turret'
-		local t3Desc = 'Assist & Repair in massive radius. (OP by djarshi)'
-		setDesc(at3Def, t3Name, t3Desc)
-		setDesc(ct3Def, t3Name, t3Desc)
-		setDesc(lt3Def, t3Name, t3Desc)
-		addBOArr(aACons, at3)
-		addBOArr(cACons, ct3)
-		addBOArr(lACons, lt3)
-	end
-end
-
-local function mulGeoTier(t1, t2, t3)
-	mulTier(t1, t2, t3, 'metalcost')
-	mulTier(t1, t2, t3, 'energycost')
-	mulTier(t1, t2, t3, 'buildtime')
-	mulTier(t1, t2, t3, 'energymake')
-	mulTier(t1, t2, t3, 'energystorage')
-	mulTier(t1, t2, t3, 'health')
-end
-
-local function mergeShield(def, ref)
-	if def and ref then
-		def[wds] = table.merge(def[wds], ref[wds])
-		def[wpn] = table.merge(def[wpn], ref[wpn])
-		def[cps]['shield_color_mult'] = ref[cps].shield_color_mult
-		def[cps]['shield_power'] = ref[cps].shield_power
-		def[cps]['shield_radius'] = ref[cps].shield_radius
-	end
-end
-
---T3 Geo
-if hasExtras and tweakT3Geo and not uDefs['armageot3'] then
-	--TODO Move prude to combat, keep shockwave.
-	rmvID('armshockwave')
-	local at2Def = uDefs['armageo']
-	local ct2Def = uDefs['corageo']
-	local lt2Def = uDefs['legageo']
-	--T3
-	local override = {
-		icontype = 'armageo',
-		canattack = false,
-		canrepeat = false,
-		maxwaterdepth = 1000000,
-		minwaterdepth = -1000000,
-		explodeas = 'advancedFusionExplosionSelfd',
-		selfdestructas = 'ScavComBossExplo',
-		customparams = {
-			techlevel = 3
-		},
-		weapondefs = {},
-		weapons = {}
-	}
-	local at3 = 'armageot3'
-	local ct3 = 'corageot3'
-	local lt3 = 'legageot3'
-	uDefs[at3] = table.merge(at2Def, override)
-	uDefs[ct3] = table.merge(ct2Def, override)
-	uDefs[lt3] = table.merge(lt2Def, override)
-	local at3Def = uDefs[at3]
-	local ct3Def = uDefs[ct3]
-	local lt3Def = uDefs[lt3]
-	if noSea then
-		unwater(at3)
-		unwater(ct3)
-		unwater(lt3)
-	end
-	local t3Name = 'Epic Geothermal Powerplant'
-	local t3DescP = 'Produces '
-	local t3DescS = ' Energy (Extremely Hazardous) (OP by djarshi)'
-	--Arm
-	mulGeoTier(uDefs['armgeo'], at2Def, at3Def)
-	mergeShield(at3Def, uDefs['armgatet3'])
-	setDesc(at3Def, t3Name, t3DescP..at3Def.energymake..t3DescS)
-	remodel(at3Def, 'ARMUWAGEO', false, false)
-	addBOArr(aACons, at3)
-	--Cor
-	mulGeoTier(uDefs['corgeo'], ct2Def, ct3Def)
-	mergeShield(ct3Def, uDefs['corgatet3'])
-	setDesc(ct3Def, t3Name, t3DescP..ct3Def.energymake..t3DescS)
-	remodel(ct3Def, 'CORUWAGEO', false, false)
-	addBOArr(cACons, ct3)
-	--Leg
-	mulGeoTier(uDefs['leggeo'], lt2Def, lt3Def)
-	mergeShield(lt3Def, uDefs['leggatet3'])
-	setDesc(lt3Def, t3Name, t3DescP..lt3Def.energymake..t3DescS)
-	remodel(lt3Def, 'legrampart', false, false)
-	addBOArr(lACons, lt3)
-	--T2
-	local ym = 'h cbbybjyybc bjbjjbbjjb yjbjbjjbbb ybjjjbjjjy jbjbjjjbjb bjbjjjbjbj yjjjbjjjby bbbjjbjbjy bjjbbjjbjb cbyyjbybbc'
-	at2Def.yardmap = ym
-	ct2Def.yardmap = ym
-	lt2Def.yardmap = ym
-	uDefs['armuwageo'].yardmap = ym
-	uDefs['coruwageo'].yardmap = ym
-	--Space Mod
-	addBO('armoc', at3)
-	addBO('coroc', ct3)
-	addBO('legoc', lt3)
 end
