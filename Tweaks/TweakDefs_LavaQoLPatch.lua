@@ -24,6 +24,7 @@ local noAir = mods.unit_restrictions_noair
 local removeExcess = true --Delete unpopular units to reduce constructor pages.
 
 local tweakBehemoth = true
+local tweakSol = true
 local tweakWrecks = true
 local tweakMini = true
 local tweakQuadLT = true
@@ -31,6 +32,10 @@ local tweakLegEpic = true
 
 local function round10(n)
 	return math.floor(n * 0.1) * 10
+end
+
+local function round100(n)
+	return math.floor(n * 0.01) * 100
 end
 
 local function rmvID(id)
@@ -173,14 +178,30 @@ end
 
 --Behemoth Nerf
 if tweakBehemoth then
-	local def = uDefs['corjugg']
-	local mcMul = 2
+	local mMul = 2
+	local eMul = 2
 	if noAir then
-		mcMul = mcMul + 1
+		mMul = mMul + 1
 	end
-	def.metalcost = def.metalcost * mcMul
-	def.buildtime = def.buildtime * mcMul
+	local def = uDefs['corjugg']
+	def.metalcost = round100(def.metalcost * mMul)
+	def.energycost = round100(def.energycost * eMul)
+	def.buildtime = math.floor(def.buildtime * ((mMul + eMul) * 0.5))
 	def[cps].paralyzemultiplier = 2.5
+end
+
+--Sol Nerf
+if tweakSol then
+	local mMul = 1.25
+	local eMul = 2.75
+	local def = uDefs['legeheatraymech']
+	def.metalcost = round100(def.metalcost * mMul)
+	def.energycost = round100(def.energycost * mMul)
+	def.buildtime = math.floor(def.buildtime * ((mMul + eMul) * 0.5))
+	def = uDefs['legeheatraymech_old']
+	def.metalcost = round100(def.metalcost * mMul)
+	def.energycost = round100(def.energycost * mMul)
+	def.buildtime = math.floor(def.buildtime * ((mMul + eMul) * 0.5))
 end
 
 --Smaller Wrecks
