@@ -105,7 +105,10 @@ if tweakT3Afus then
 	aT3FusDef[em] = aAFusDef[em] * costMul
 	cT3FusDef[em] = cAFusDef[em] * costMul
 	lT3FusDef[em] = lAFusDef[em] * costMul
+	--Arm unique pass.
 	aT3FusDef.energystorage = aAFusDef.energystorage * costMul * 1.5
+	aT3FusDef.cloakcost = 250
+	aT3FusDef.mincloakdistance = 175
 	setDesc(lT3FusDef, nil, 'Produces '..lT3FusDef[em]..' Energy (Hazardous)')
 	local bp = 'other/resourcecheat.dds'
 	aT3FusDef.buildpic = bp
