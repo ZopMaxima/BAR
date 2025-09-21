@@ -246,20 +246,45 @@ if hasScavs and tweakQuadLT then
 	uDefs[lLT] = table.copy(cDef)
 	local lDef = uDefs[lLT]
 	for i = 1, 4 do
-		local cWDef = cDef[wds]['hllt_'..i]
 		local aWDef = aDef[wds]['hllt_'..i]
+		local cWDef = cDef[wds]['hllt_'..i]
 		local lWDef = lDef[wds]['hllt_'..i]
-		--Cor
-		cWDef.range = round10(cWDef.range * 1.25)
+		local dps = cWDef.damage.default / cWDef.reloadtime
 		--Arm
 		mergeRec(aWDef, uDefs['armbeamer'][wds]['armbeamer_weapon'])
 		aWDef.range = round10(aWDef.range * 1.2)
-		aWDef.reloadtime = aWDef.reloadtime + (i * 0.025)
-		aWDef.beamtime = aWDef.reloadtime * 2
-		aWDef.damage.default = aWDef.damage.default * 1.5
-		--Leg
+		aWDef.reloadtime = aWDef.reloadtime + 0.075
+		aWDef.beamtime = aWDef.reloadtime
+		aWDef.thickness = aWDef.thickness - ((i - 1) * 0.5)
+		local aMul = dps / (aWDef.damage.default / aWDef.reloadtime)
+		aWDef.damage.default = math.floor(aWDef.damage.default * aMul)
+		aWDef.damage.vtol = math.floor(aWDef.damage.vtol * aMul)
+		aWDef.damage.commanders = nil
 		aDef[wpn][i]['fastautoretargeting'] = true
+		--Cor
+		cWDef.range = round10(cWDef.range * 1.25)
+		cWDef.damage.commanders = nil
+		--Leg
 		mergeRec(lWDef, uDefs['legmg'][wds]['armmg_weapon'])
+		lWDef.reloadtime = lWDef.reloadtime + ((i - 1) * (1 / lWDef.burst))
+		lWDef.burst = lWDef.burst + (i - 1)
+		local lMul = dps / (lWDef.damage.default / (lWDef.reloadtime / lWDef.burst))
+		lWDef.damage.default = math.floor(lWDef.damage.default * lMul)
+		lWDef.damage.commanders = nil
+		lDef[wpn][i]['fastautoretargeting'] = true
+		--Scatter Targets
+		local btc = 'badtargetcategory'
+		if i == 1 or i == 2 then
+			aDef[wpn][i][btc] = "VTOL GROUNDSCOUT"
+			cDef[wpn][i][btc] = aDef[wpn][i][btc]
+			lDef[wpn][i][btc] = aDef[wpn][i][btc]
+		end
+		local pxp = 'proximitypriority'
+		if i == 1 or i == 3 then
+			aWDef[pxp] = 1
+			cWDef[pxp] = 1
+			lWDef[pxp] = 1
+		end
 	end
 	setDesc(aDef, 'Quad Beamer', 'Heavy Beam Laser Turret')
 	setDesc(lDef, 'Quad Cacophony', 'Heavy Machine Gun Turret')
@@ -282,12 +307,23 @@ if hasScavs then
 		local wDef2 = def[wds]['armageddon_blue_laser']
 		local wDef3 = def[wds]['armageddon_green_laser']
 		mergeRec(wDef1, uDefs['legsrailt4'][wds]['railgunt2'])
+		wDef1.duration = 0.05
 		wDef1.cegtag = 'railgun'
-		wDef1.collidefriendly = false
 		wDef1.rgbcolor2 = '1 1 1'
-		wDef1.weaponvelocity = wDef1.weaponvelocity * 1.5
+		wDef1.areaofeffect = wDef1.areaofeffect * 2
+		wDef1.edgeeffectiveness = 0.7
+		wDef1.collidefriendly = false
+		wDef1.stockpile = false
+		wDef1.stockpilelimit = 0
+		wDef1.thickness = 5
+		wDef1.weaponvelocity = wDef1.weaponvelocity * 2.5
 		mergeRec(wDef2, uDefs['legerailtank'][wds]['t3_rail_accelerator'])
-		wDef2.range = round10(wDef2.range * 1.5)
+		wDef2.duration = 0.05
+		wDef2.burst = 3
+		wDef2.burstrate = 0.25
+		wDef2.range = round10(wDef2.range * 1.25)
+		wDef2.burstrate = 0.25
+		wDef2.thickness = 2
 		mergeRec(wDef3, uDefs['legdtr'][wds]['corlevlr_weapon'])
 		wDef3.reloadtime = wDef3.reloadtime * 0.375
 		wDef3.rgbcolor = '1 0.8 0'
