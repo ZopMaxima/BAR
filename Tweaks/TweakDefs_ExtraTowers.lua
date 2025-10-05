@@ -3,6 +3,7 @@ local uDefs = UnitDefs or {}
 local cps = 'customparams'
 local fds = 'featuredefs'
 local wds = 'weapondefs'
+local wpn = 'weapons'
 local aACons = {'armaca','armack','armacv'}
 local cACons = {'coraca','corack','coracv'}
 local lACons = {'legaca','legack','legacv'}
