@@ -1,5 +1,6 @@
 --Extra Towers (Zop)
 local uDefs = UnitDefs or {}
+local mods = Spring.GetModOptions()
 local cps = 'customparams'
 local fds = 'featuredefs'
 local wds = 'weapondefs'
