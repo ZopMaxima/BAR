@@ -5,7 +5,7 @@ local cps = 'customparams'
 local fds = 'featuredefs'
 local wds = 'weapondefs'
 local wpn = 'weapons'
-local aACons = {'armaca','armack','armacv','armacsub','armoc'} --oc Orbital Constructor
+local aACons = {'armaca','armack','armacv','armacsub','armoc'} --oc Orbital Constructor from Space Mod
 local cACons = {'coraca','corack','coracv','coracsub','coroc'}
 local lACons = {'legaca','legack','legacv','legoc'}
 
@@ -184,9 +184,13 @@ if tweakBehemoth then
 		mMul = mMul + 1
 	end
 	local def = uDefs['corjugg']
-	def.metalcost = round100(def.metalcost * mMul)
-	def.energycost = round100(def.energycost * eMul)
-	def.buildtime = math.floor(def.buildtime * ((mMul + eMul) * 0.5))
+	--Compatibility Check
+	local cost = def.metalcost
+	if cost == 20000 then
+		def.metalcost = round100(def.metalcost * mMul)
+		def.energycost = round100(def.energycost * eMul)
+		def.buildtime = math.floor(def.buildtime * ((mMul + eMul) * 0.5))
+	end
 	def[cps].paralyzemultiplier = 2.5
 end
 
@@ -195,28 +199,60 @@ if tweakSol then
 	local mMul = 1.25
 	local eMul = 2.75
 	local def = uDefs['legeheatraymech']
-	def.metalcost = round100(def.metalcost * mMul)
-	def.energycost = round100(def.energycost * mMul)
-	def.buildtime = math.floor(def.buildtime * ((mMul + eMul) * 0.5))
-	def = uDefs['legeheatraymech_old']
-	def.metalcost = round100(def.metalcost * mMul)
-	def.energycost = round100(def.energycost * mMul)
-	def.buildtime = math.floor(def.buildtime * ((mMul + eMul) * 0.5))
+	--Compatibility Check
+	local cost = def.metalcost
+	if cost == 23500 then
+		def.metalcost = round100(def.metalcost * mMul)
+		def.energycost = round100(def.energycost * mMul)
+		def.buildtime = math.floor(def.buildtime * ((mMul + eMul) * 0.5))
+		def = uDefs['legeheatraymech_old']
+		def.metalcost = round100(def.metalcost * mMul)
+		def.energycost = round100(def.energycost * mMul)
+		def.buildtime = math.floor(def.buildtime * ((mMul + eMul) * 0.5))
+	end
 end
 
 --Smaller Wrecks
 if tweakWrecks then
-	local scale = 0.5
+	local scale = 0.75
 	if noAir then
 		scale = 0.25
 	end
+	local t3Crush = 1400
+	local noCrush = 100000
+	local mcMul = 0.4
+	local hpMul = 0.1
 	for id, def in pairs(uDefs) do
+		--Most epic bots are smaller than Titan.
+		if def.movementclass and def.movementclass == 'EPICBOT' then
+			def.movementclass = 'HABOT5'
+		end
 		if def.canmove and def[fds] and def[fds].dead then
 			local dead = def[fds].dead
 			dead.footprintx = math.max(1, math.floor(dead.footprintx * scale))
 			dead.footprintz = math.max(1, math.floor(dead.footprintz * scale))
+			if not dead.crushresistance then
+				local mass = 0
+				if dead.mass then
+					mass = dead.mass
+				elseif def.mass then
+					mass = def.mass * mcMul
+					if dead.damage then
+						mass = mass + (dead.damage * hpMul)
+					end
+				elseif def.metalcost then
+					mass = def.metalcost * mcMul
+					if dead.damage then
+						mass = mass + (dead.damage * hpMul)
+					end
+				end
+				if mass >= t3Crush and mass < noCrush then
+					dead.crushresistance = t3Crush - 1
+				end
+			end
 		end
 	end
+	uDefs['armbanth'].movementclass = 'EPICBOT'
 end
 
 --Mini plasma as 'Cerberus' alternatives.
