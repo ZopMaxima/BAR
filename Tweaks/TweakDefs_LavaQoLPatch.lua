@@ -8,7 +8,9 @@ local wpn = 'weapons'
 local aACons = {'armaca','armack','armacv','armacsub','armoc'} --oc Orbital Constructor from Space Mod
 local cACons = {'coraca','corack','coracv','coracsub','coroc'}
 local lACons = {'legaca','legack','legacv','legoc'}
+local allBOs = {}
 
+local hasLegion = mods.experimentallegionfaction
 local hasScavs = mods.scavunitsforplayers
 local hasExtras = mods.experimentalextraunits
 local hasHoverTide = mods.map_lavatiderhythm == 'enabled' and mods.map_lavahighlevel <= 1 and mods.map_lavahighdwell <= 1
@@ -29,6 +31,14 @@ local tweakWrecks = true
 local tweakMini = true
 local tweakQuadLT = true
 local tweakLegEpic = true
+local tweakEcoT3 = true
+
+--Assign
+for id, def in pairs(uDefs) do
+	if def and def.buildoptions then
+		table.insert(allBOs, id)
+	end
+end
 
 local function round10(n)
 	return math.floor(n * 0.1) * 10
@@ -36,13 +46,6 @@ end
 
 local function round100(n)
 	return math.floor(n * 0.01) * 100
-end
-
-local function rmvID(id)
-	local def = UnitDefs[id]
-	if def then
-		def.health = 0
-	end
 end
 
 local function addBO(conID, id)
@@ -76,6 +79,10 @@ local function rmvBOArr(conIDs, id)
 	for i = 1, #conIDs do
 		rmvBO(conIDs[i], id)
 	end
+end
+
+local function rmvID(id)
+	rmvBOArr(allBOs, id)
 end
 
 local function mergeRec(def, ref)
@@ -123,11 +130,12 @@ if noNukes then
 	rmvID('legabm')
 	rmvID('armscab')
 	rmvID('cormabm')
-	local ramp = uDefs['legrampart']
-	ramp[wpn][1] = ramp[wpn][2]
-	ramp[wpn][2] = nil
-	ramp[wds]['fmd_rocket'].interceptor = nil
-	--TODO Haven.
+	if hasLegion then
+		local ramp = uDefs['legrampart']
+		ramp[wpn][1] = ramp[wpn][2]
+		ramp[wpn][2] = nil
+		ramp[wds]['fmd_rocket'].interceptor = nil
+	end
 end
 if noTacs then
 	rmvID('armemp')
@@ -135,11 +143,12 @@ if noTacs then
 	rmvID('legperdition')
 end
 if removeExcess then
+	rmvBOArr(aACons, 'armdf')
 	rmvBOArr(aACons, 'armckfus')
 	rmvBOArr(lACons, 'cormexp')
 	if hasExtras and hasScavs then
-		--TODO Move prude to combat, keep shockwave.
-		rmvID('armshockwave')
+		--TODO Move prude to combat.
+		rmvID('armgmm')
 	end
 end
 
@@ -157,6 +166,9 @@ if noSea then
 			else
 				def.waterline = 0
 				def[mwd] = 1
+				if def[cps] then
+					def[cps].enabled_on_no_sea_maps = true
+				end
 			end
 		elseif min and min > 0 then
 			rmvID(id)
@@ -195,7 +207,7 @@ if tweakBehemoth then
 end
 
 --Sol Nerf
-if tweakSol then
+if tweakSol and hasLegion then
 	local mMul = 1.25
 	local eMul = 2.75
 	local def = uDefs['legeheatraymech']
@@ -256,7 +268,7 @@ if tweakWrecks then
 end
 
 --Mini plasma as 'Cerberus' alternatives.
-if hasScavs and tweakMini then
+if hasScavs and tweakMini and hasLegion then
 	local rangeMul = 1.25
 	local epsMul = 0.5
 	local aWDef = uDefs['armminivulc'][wds]['armminivulc_weapon']
@@ -272,7 +284,7 @@ if hasScavs and tweakMini then
 end
 
 --Quad towers.
-if hasScavs and tweakQuadLT then
+if hasScavs and tweakQuadLT and hasLegion then
 	local aLT = 'armhllllt'
 	local cLT = 'corhllllt'
 	local lLT = 'leghllllt'
@@ -336,7 +348,7 @@ if hasScavs then
 	local lT4 = 'legdoomt3'
 	local cEvos = {'corcomlvl8', 'corcomlvl9', 'corcomlvl10'}
 	local lEvos = {'legcomlvl8', 'legcomlvl9', 'legcomlvl10'}
-	if tweakLegEpic then
+	if tweakLegEpic and hasLegion then
 		uDefs[lT4] = table.copy(uDefs[cT4])
 		local def = uDefs[lT4]
 		local wDef1 = def[wds]['armagmheat']
@@ -357,8 +369,6 @@ if hasScavs then
 		wDef2.duration = 0.05
 		wDef2.burst = 3
 		wDef2.burstrate = 0.25
-		wDef2.range = round10(wDef2.range * 1.25)
-		wDef2.burstrate = 0.25
 		wDef2.thickness = 2
 		mergeRec(wDef3, uDefs['legdtr'][wds]['corlevlr_weapon'])
 		wDef3.reloadtime = wDef3.reloadtime * 0.375
@@ -372,4 +382,65 @@ if hasScavs then
 		addBOArr(lEvos, cT4)
 	end
 	addBOArr(cEvos, cT4)
+end
+
+local function mulAfus(t2, t3, hpMul, scale)
+	if t2 and t3 then
+		t3.health = t2.health * hpMul
+		t3.buildtime = t2.buildtime * scale
+		t3.metalcost = t2.metalcost * scale
+		t3.energycost = t2.energycost * scale
+		t3.energymake = t2.energymake * scale
+		t3.explodeas = 'advancedFusionExplosionSelfd'
+	end
+end
+
+local function mulConv(def)
+	local x = 6
+	local yard = 'oooooo oooooo oooooo oooooo oooooo oooooo'
+	if def then
+		local scale = x / def.footprintx
+		local cv = 'collisionvolume'
+		def[cv..'offsets'] = def[cv..'offsets'] * scale
+		def[cv..'scales'] = def[cv..'scales'] * scale
+		def[cv..'type'] = def[cv..'type'] * scale
+		def.footprintx = x
+		def.footprintz = x
+		def.yardmap = yard
+		if def[fds] then
+			local d = def[fds].dead
+			if d then
+				d.footprintx = x
+				d.footprintz = x
+			end
+			local h = def[fds].heap
+			if h then
+				h.footprintx = x
+				h.footprintz = x
+			end
+		end
+	end
+end
+
+--Afus faction attributes.
+if tweakEcoT3 then
+	local hpMul = 1.5
+	local scale = 10
+	local aT3Def = uDefs['armafust3']
+	local cT3Def = uDefs['corafust3']
+	local lT3Def = uDefs['legafust3']
+	mulAfus(uDefs['armafus'], aT3Def, hpMul, scale)
+	mulAfus(uDefs['corafus'], cT3Def, hpMul, scale)
+	mulAfus(uDefs['legafus'], lT3Def, hpMul, scale)
+	--Arm
+	aT3Def.energystorage = aT3Def.energystorage * hpMul
+	aT3Def.stealth = true
+	--Leg
+	if hasLegion then
+		setDesc(lT3Def, nil, 'Produces '..lT3Def.energymake..' Energy (Hazardous)')
+	end
+	--Smaller converters.
+	mulConv(uDefs['armmmkrt3'])
+	mulConv(uDefs['cormmkrt3'])
+	mulConv(uDefs['legadveconvt3'])
 end
