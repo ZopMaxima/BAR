@@ -2,6 +2,7 @@
 local uDefs = UnitDefs or {}
 local cps = 'customparams'
 local wds = 'weapondefs'
+local wpn = 'weapons'
 
 local tweakSeaPlane = true
 local tweakTorpedo = true
@@ -21,23 +22,47 @@ local function unwater(id)
 	end
 end
 
-local function addBO(builderID, id)
-	local bDef = UnitDefs[builderID]
+local function addBO(conID, id)
+	local cDef = UnitDefs[conID]
 	local uDef = UnitDefs[id]
-	if bDef and uDef then
-		bDef.buildoptions[#bDef.buildoptions + 1] = id
+	if cDef and uDef and not cDef.buildoptions[id] then
+		table.insert(cDef.buildoptions, id)
 	end
 end
 
-local function mergeMapRec(l, r)
-	for k, v in pairs(r) do
-		if type(v) == 'table' then
-			local lk = l[k] or {}
-			mergeMapRec(lk, v);
-			l[k] = lk
-		else
-			l[k] = v
+local function mergeRec(def, ref)
+	table.mergeInPlace(def, ref, true)
+end
+
+local function clear(m)
+	for k, v in pairs(m) do
+		m[k] = nil
+	end
+end
+
+local function indexOfWeapon(def, id, start)
+	if def then
+		local lowID = string.lower(id)
+		for i = start, #def[wpn] do
+			if def[wpn][i].def then
+				local lowDef = string.lower(def[wpn][i].def)
+				if lowDef == lowID then
+					return i
+				end
+			end
 		end
+	end
+	return 0
+end
+
+local function mergeWeapons(def, defWID, ref, refWID)
+	local i = indexOfWeapon(def, defWID, 1)
+	while i > 0 do
+		local w = def[wpn][i]
+		clear(w)
+		mergeRec(w, ref[wpn][indexOfWeapon(ref, refWID, 1)])
+		w.def = defWID
+		i = indexOfWeapon(def, defWID, i + 1)
 	end
 end
 
@@ -169,26 +194,64 @@ end
 
 --Flagship AA boost.
 if tweakFlags then
-	local afsDef = uDefs['armfepocht4']
-	local cfsDef = uDefs['corfblackhyt4']
-	local lfsDef = uDefs['legfortt4']
-	afsDef.speed = afsDef.speed * 1.25
-	cfsDef.speed = cfsDef.speed * 1.25
-	lfsDef.speed = lfsDef.speed * 1.25
-	afsDef.turnrate = afsDef.turnrate * 1.25
-	cfsDef.turnrate = cfsDef.turnrate * 1.25
-	lfsDef.turnrate = lfsDef.turnrate * 1.25
-	lfsDef['radardistancejam'] = 600
-	local afsWDef = afsDef[wds]['ferret_missile']
-	mergeMapRec(afsWDef, uDefs['armflak'][wds]['armflak_gun'])
-	afsWDef.reloadtime = afsWDef.reloadtime * 1.5
-	local cfsWDef = cfsDef[wds]['ferret_missile']
-	mergeMapRec(cfsWDef, uDefs['legflak'][wds]['legflak_gun'])
-	cfsWDef.cegtag = nil
-	cfsWDef.range = round10(cfsWDef.range * 0.75)
-	local lfsWDef = lfsDef[wds]['aa_missiles']
-	mergeMapRec(lfsWDef, uDefs['corscreamer'][wds]['cor_advsam'])
-	lfsWDef.burstrate = nil
-	lfsWDef.burst = nil
-	lfsWDef.stockpile = false
+	local i = 0
+	local aDef = uDefs['armfepocht4']
+	local cDef = uDefs['corfblackhyt4']
+	local lDef = uDefs['legfortt4']
+	local aWID = 'ferret_missile'
+	local cWID = 'ferret_missile'
+	local lWID = 'aa_missiles'
+	local aWDef = aDef[wds][aWID]
+	local cWDef = cDef[wds][cWID]
+	local lWDef = lDef[wds][lWID]
+	local aAADef = uDefs['armflak']
+	local cAADef = uDefs['legafigdef']
+	local lAADef = uDefs['corscreamer']
+	local aAAWID = 'armflak_gun'
+	local cAAWID = 'leggun'
+	local lAAWID = 'cor_advsam'
+	local aAAWDef = aAADef[wds][aAAWID]
+	local cAAWDef = cAADef[wds][cAAWID]
+	local lAAWDef = lAADef[wds][lAAWID]
+	aDef.speed = aDef.speed * 1.25
+	cDef.speed = cDef.speed * 1.25
+	lDef.speed = lDef.speed * 1.125
+	aDef.turnrate = aDef.turnrate * 1.25
+	cDef.turnrate = cDef.turnrate * 1.25
+	lDef.turnrate = lDef.turnrate * 1.125
+	lDef['radardistancejam'] = 600
+	--Arm
+	clear(aWDef)
+	mergeRec(aWDef, aAAWDef)
+	mergeWeapons(aDef, aWID, aAADef, aAAWID)
+	aWDef.reloadtime = aWDef.reloadtime * 1.5
+	local i1 = indexOfWeapon(aDef, aWID, 1)
+	local i2 = indexOfWeapon(aDef, aWID, i1 + 1)
+	aDef[wpn][i1].maindir = "0 -1 -2"
+	aDef[wpn][i1].proximitypriority = 1
+	aDef[wpn][i2].proximitypriority = -1
+	--Cor
+	clear(cWDef)
+	mergeRec(cWDef, cAAWDef)
+	mergeWeapons(cDef, cWID, cAADef, cAAWID)
+	cWDef.reloadtime = cWDef.reloadtime * 0.375
+	cWDef.burst = cWDef.burst * 0.5
+	cWDef.burstrate = cWDef.burstrate * 1.5
+	cWDef.range = round10(cWDef.range * 1.25)
+	cWDef[cps].noattackrangearc = nil
+	i1 = indexOfWeapon(cDef, cWID, 1)
+	i2 = indexOfWeapon(cDef, cWID, i1 + 1)
+	cDef[wpn][i1].maxangledif = nil
+	cDef[wpn][i1].maindir = '-1.5 0 2'
+	cDef[wpn][i2].maxangledif = nil
+	cDef[wpn][i2].maindir = '1.5 0 2'
+	--Leg
+	clear(lWDef)
+	mergeRec(lWDef, lAAWDef)
+	mergeWeapons(lDef, lWID, lAADef, lAAWID)
+	lWDef.stockpile = false
+	lWDef.maindir = "1 0 0"
+	lWDef.cegtag = 'missiletrailaa-medium'
+	lWDef.explosiongenerator = 'custom:genericshellexplosion-medium-aa'
+	lWDef.areaofeffect = lWDef.areaofeffect * 0.25
 end
