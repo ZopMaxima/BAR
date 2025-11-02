@@ -168,8 +168,8 @@ if tweakAirTrans then
 	for id, def in pairs(uDefs) do
 		if def.cruisealtitude then
 			if def.transportcapacity then
-				def['isfireplatform'] = true
-				def['unloadspread'] = 0.25
+				--TODO Preferably the held unit says whether it can fire.
+				--def['isfireplatform'] = true
 			end
 		elseif def.canmove then
 			if not def.customparams then
@@ -194,7 +194,6 @@ end
 
 --Flagship AA boost.
 if tweakFlags then
-	local i = 0
 	local aDef = uDefs['armfepocht4']
 	local cDef = uDefs['corfblackhyt4']
 	local lDef = uDefs['legfortt4']
@@ -249,9 +248,10 @@ if tweakFlags then
 	clear(lWDef)
 	mergeRec(lWDef, lAAWDef)
 	mergeWeapons(lDef, lWID, lAADef, lAAWID)
+	lWDef.edgeeffectiveness = 0.5
 	lWDef.stockpile = false
 	lWDef.maindir = "1 0 0"
 	lWDef.cegtag = 'missiletrailaa-medium'
 	lWDef.explosiongenerator = 'custom:genericshellexplosion-medium-aa'
-	lWDef.areaofeffect = lWDef.areaofeffect * 0.25
+	lWDef.areaofeffect = lWDef.areaofeffect * 0.2
 end
