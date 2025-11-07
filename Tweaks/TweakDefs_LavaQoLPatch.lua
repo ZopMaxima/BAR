@@ -85,6 +85,13 @@ local function rmvID(id)
 	rmvBOArr(allBOs, id)
 end
 
+local function delID(id)
+	local def = UnitDefs[id]
+	if def then
+		def.health = 0
+	end
+end
+
 local function mergeRec(def, ref)
 	table.mergeInPlace(def, ref, true)
 end
@@ -117,14 +124,14 @@ if noLOLCannon then
 	rmvID('legstarfall')
 end
 if noPawnLauncher then
-	rmvID('armbotrail')
+	delID('armbotrail')
 end
 if noNukes then
 	rmvID('armsilo')
 	rmvID('corsilo')
 	rmvID('legsilo')
-	rmvID('armseadragon')
-	rmvID('cordesolator')
+	delID('armseadragon')
+	delID('cordesolator')
 	rmvID('armamd')
 	rmvID('corfmd')
 	rmvID('legabm')
