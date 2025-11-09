@@ -8,7 +8,10 @@ local tweakSeaPlane = true
 local tweakTorpedo = true
 local tweakAirPrice = true
 local tweakAirTrans = true
+local tweakScreamers = true
 local tweakFlags = true
+
+local catFig = 'ATAFIGHTER'
 
 local function round10(n)
 	return math.floor(n * 0.1) * 10
@@ -171,6 +174,22 @@ if tweakAirTrans then
 				--TODO Preferably the held unit says whether it can fire.
 				--def['isfireplatform'] = true
 			end
+			if tweakScreamers and def[wpn] then
+				local isATA = false
+				local isATS = false
+				for i = 1, #def[wpn] do
+					local otc = def[wpn][i].onlytargetcategory
+					isATA = otc == 'VTOL'
+					isATS = isATA == false
+				end
+				if isATA and isATS == false then
+					if def.category then
+						def.category = def.category..' '..catFig
+					else
+						def.category = catFig
+					end
+				end
+			end
 		elseif def.canmove then
 			if not def.customparams then
 				def[cps] = {}
@@ -188,6 +207,50 @@ if tweakAirTrans then
 					def[cps][fdm] = 0.25
 				end
 			end
+		end
+	end
+end
+
+if tweakScreamers then
+	local aDef = uDefs['armmercury']
+	local cDef = uDefs['corscreamer']
+	local lDef = uDefs['leglraa']
+	local aWID = 'arm_advsam'
+	local cWID = 'cor_advsam'
+	local lWID = 'railgunt2'
+	local i = 0
+	local w = nil
+	local btc = 'badtargetcategory'
+	aDef[wds][aWID].stockpile = false
+	i = indexOfWeapon(aDef, aWID, 1)
+	if i > 0 then
+		w = aDef[wpn][i]
+		if w[btc] then
+			w[btc] = w[btc]..' '..catFig
+		else
+			w[btc] = catFig
+		end
+	end
+	cDef[wds][cWID].stockpile = false
+	i = indexOfWeapon(cDef, cWID, 1)
+	if i > 0 then
+		w = cDef[wpn][i]
+		if w[btc] then
+			w[btc] = w[btc]..' '..catFig
+		else
+			w[btc] = catFig
+		end
+	end
+	lDef[wds][lWID].burst = lDef[wds][lWID].burst * 2
+	lDef[wds][lWID].burstrate = lDef[wds][lWID].burstrate * 0.75
+	lDef[wds][lWID].range = 2400
+	i = indexOfWeapon(lDef, lWID, 1)
+	if i > 0 then
+		w = lDef[wpn][i]
+		if w[btc] then
+			w[btc] = w[btc]..' '..catFig
+		else
+			w[btc] = catFig
 		end
 	end
 end
@@ -248,6 +311,9 @@ if tweakFlags then
 	clear(lWDef)
 	mergeRec(lWDef, lAAWDef)
 	mergeWeapons(lDef, lWID, lAADef, lAAWID)
+	lWDef.turnrate = lWDef.turnrate * 1.25
+	lWDef.weaponvelocity = lWDef.weaponvelocity * 0.8
+	lWDef.proximitypriority = nil
 	lWDef.edgeeffectiveness = 0.5
 	lWDef.stockpile = false
 	lWDef.maindir = "1 0 0"
