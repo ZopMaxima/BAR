@@ -362,6 +362,7 @@ if hasScavs then
 		local wDef2 = def[wds]['armageddon_blue_laser']
 		local wDef3 = def[wds]['armageddon_green_laser']
 		mergeRec(wDef1, uDefs['legsrailt4'][wds]['railgunt2'])
+		wDef1.reloadtime = wDef1.reloadtime * 1.5
 		wDef1.duration = 0.05
 		wDef1.cegtag = 'railgun'
 		wDef1.rgbcolor2 = '1 1 1'
@@ -442,6 +443,7 @@ if tweakEcoT3 then
 	--Arm
 	aT3Def.energystorage = aT3Def.energystorage * hpMul
 	aT3Def.stealth = true
+	aT3Def.radardistancejam = 25
 	--Leg
 	if hasLegion then
 		setDesc(lT3Def, nil, 'Produces '..lT3Def.energymake..' Energy (Hazardous)')

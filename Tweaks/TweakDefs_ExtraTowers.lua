@@ -139,6 +139,7 @@ if hasScavs then
 		local wDef2 = def[wds]['armageddon_blue_laser']
 		local wDef3 = def[wds]['armageddon_green_laser']
 		mergeRec(wDef1, uDefs['legsrailt4'][wds]['railgunt2'])
+		wDef1.reloadtime = wDef1.reloadtime * 1.5
 		wDef1.duration = 0.05
 		wDef1.cegtag = 'railgun'
 		wDef1.rgbcolor2 = '1 1 1'
@@ -152,8 +153,6 @@ if hasScavs then
 		mergeRec(wDef2, uDefs['legerailtank'][wds]['t3_rail_accelerator'])
 		wDef2.duration = 0.05
 		wDef2.burst = 3
-		wDef2.burstrate = 0.25
-		wDef2.range = round10(wDef2.range * 1.25)
 		wDef2.burstrate = 0.25
 		wDef2.thickness = 2
 		mergeRec(wDef3, uDefs['legdtr'][wds]['corlevlr_weapon'])
