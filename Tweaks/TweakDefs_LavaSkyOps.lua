@@ -8,8 +8,8 @@ local tweakSeaPlane = true
 local tweakTorpedo = true
 local tweakAirPrice = true
 local tweakAirTrans = true
-local tweakScreamers = true
 local tweakFlags = true
+local tweakScreamers = true
 
 local catFig = 'ATAFIGHTER'
 
@@ -211,50 +211,6 @@ if tweakAirTrans then
 	end
 end
 
-if tweakScreamers then
-	local aDef = uDefs['armmercury']
-	local cDef = uDefs['corscreamer']
-	local lDef = uDefs['leglraa']
-	local aWID = 'arm_advsam'
-	local cWID = 'cor_advsam'
-	local lWID = 'railgunt2'
-	local i = 0
-	local w = nil
-	local btc = 'badtargetcategory'
-	aDef[wds][aWID].stockpile = false
-	i = indexOfWeapon(aDef, aWID, 1)
-	if i > 0 then
-		w = aDef[wpn][i]
-		if w[btc] then
-			w[btc] = w[btc]..' '..catFig
-		else
-			w[btc] = catFig
-		end
-	end
-	cDef[wds][cWID].stockpile = false
-	i = indexOfWeapon(cDef, cWID, 1)
-	if i > 0 then
-		w = cDef[wpn][i]
-		if w[btc] then
-			w[btc] = w[btc]..' '..catFig
-		else
-			w[btc] = catFig
-		end
-	end
-	lDef[wds][lWID].burst = lDef[wds][lWID].burst * 2
-	lDef[wds][lWID].burstrate = lDef[wds][lWID].burstrate * 0.75
-	lDef[wds][lWID].range = 2400
-	i = indexOfWeapon(lDef, lWID, 1)
-	if i > 0 then
-		w = lDef[wpn][i]
-		if w[btc] then
-			w[btc] = w[btc]..' '..catFig
-		else
-			w[btc] = catFig
-		end
-	end
-end
-
 --Flagship AA boost.
 if tweakFlags then
 	local aDef = uDefs['armfepocht4']
@@ -313,11 +269,61 @@ if tweakFlags then
 	mergeWeapons(lDef, lWID, lAADef, lAAWID)
 	lWDef.turnrate = lWDef.turnrate * 1.25
 	lWDef.weaponvelocity = lWDef.weaponvelocity * 0.8
+	lWDef.burst = 3
+	lWDef.burstrate = 0.01
+	lWDef.damage.vtol = lWDef.damage.vtol * 0.5
+	lWDef.dance = 250
 	lWDef.proximitypriority = nil
-	lWDef.edgeeffectiveness = 0.5
 	lWDef.stockpile = false
 	lWDef.maindir = "1 0 0"
 	lWDef.cegtag = 'missiletrailaa-medium'
+	lWDef.smokesize = lWDef.smokesize * 0.75
 	lWDef.explosiongenerator = 'custom:genericshellexplosion-medium-aa'
 	lWDef.areaofeffect = lWDef.areaofeffect * 0.2
+end
+
+--More reliable LRAA.
+if tweakScreamers then
+	local aDef = uDefs['armmercury']
+	local cDef = uDefs['corscreamer']
+	local lDef = uDefs['leglraa']
+	local aWID = 'arm_advsam'
+	local cWID = 'cor_advsam'
+	local lWID = 'railgunt2'
+	local i = 0
+	local w = nil
+	local btc = 'badtargetcategory'
+	aDef[wds][aWID].stockpile = false
+	aDef[wds][aWID].reloadtime = aDef[wds][aWID].reloadtime * 1.5
+	i = indexOfWeapon(aDef, aWID, 1)
+	if i > 0 then
+		w = aDef[wpn][i]
+		if w[btc] then
+			w[btc] = w[btc]..' '..catFig
+		else
+			w[btc] = catFig
+		end
+	end
+	cDef[wds][cWID].stockpile = false
+	cDef[wds][cWID].reloadtime = cDef[wds][cWID].reloadtime * 1.5
+	i = indexOfWeapon(cDef, cWID, 1)
+	if i > 0 then
+		w = cDef[wpn][i]
+		if w[btc] then
+			w[btc] = w[btc]..' '..catFig
+		else
+			w[btc] = catFig
+		end
+	end
+	lDef[wds][lWID].burst = lDef[wds][lWID].burst + 1
+	lDef[wds][lWID].range = 2400
+	i = indexOfWeapon(lDef, lWID, 1)
+	if i > 0 then
+		w = lDef[wpn][i]
+		if w[btc] then
+			w[btc] = w[btc]..' '..catFig
+		else
+			w[btc] = catFig
+		end
+	end
 end
