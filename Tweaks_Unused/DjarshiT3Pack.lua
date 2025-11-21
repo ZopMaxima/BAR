@@ -1,4 +1,4 @@
--- LavaT3pack Djarshi v4.8
+--LavaT3pack Djarshi v4.8.1
 local races = {"arm", "cor", "leg"}
 local a, b, c, d, e, f, g =
     UnitDefs or {},
@@ -50,6 +50,7 @@ for l, m in pairs(b) do
         m .. "nanotct2",
         m .. "nanotct3",
         {
+            icontype = "armrespawn",
             metalcost = 3360,
             energycost = 51200,
             builddistance = 625,
@@ -73,6 +74,7 @@ for l, m in pairs(b) do
         m .. "ageo",
         m .. "ageot3",
         {
+            icontype = "armageo",
             buildtime = 88000,
 		    collisionvolumeoffsets = "0 0 0",
 		    collisionvolumescales = "61 128 61",
@@ -91,7 +93,7 @@ for l, m in pairs(b) do
 		    metalcost = 16000,
             objectname = "Units/mission_command_tower.s3o",
             buildpic = "scavengers/mission_command_tower.dds",
-		    script = "Units/ARMAGEO.cob",
+		    script = "mission_command_tower.cob",
 		    seismicsignature = 0,
 		    selfdestructas = "advgeo",
             -- extended from 'ym' of other geo's
@@ -169,11 +171,13 @@ local newAfus = mergeToNew(
         "lootboxplatinum",
         "afuslegendary",
         {
+            icontype = "lootboxplatinum",
             buildpic = "other/resourcecheat.dds",
             buildtime = 120000,
             metalmake = 0,
-            footprintx = 12,
-            footprintz = 12,
+            footprintx = 4,
+            footprintz = 4,
+			yardmap = 'yooy oooo oooo yooy',
             explodeas = "ScavComBossExplo",
             reclaimable = true,
             customparams = {
@@ -252,13 +256,14 @@ local newT3Mex = mergeToNew(
         "armmoho",
         "t3mmex",
         {
-            icontype = "legmex",
+            icontype = "armmoho",
             health = 6200,
             metalstorage = 2000,
             buildpic = "scavengers/scavsafeareabeacon.DDS",
             buildtime = 30000,
             reclaimable = true,
             objectname = "scavs/scavsafeareabeacon.s3o",
+            script = "Units/ARMEYES.cob",
             energycost = 24300,
             metalcost = 1920,
             energyupkeep = 500,
