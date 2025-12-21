@@ -160,6 +160,8 @@ if tweakAirPrice then
 	--Snowflake price includes Epic Dragon.
 	local eDragon = uDefs['corcrwt4']
 	if eDragon then
+		eDragon.health = eDragon.health * 1.5
+		eDragon.speed = math.floor(eDragon.speed * 0.675)
 		eDragon.buildtime = math.floor(eDragon.buildtime * ((airMCMul + airECMul) * 0.5))
 		eDragon.metalcost = eDragon.metalcost * airMCMul
 		eDragon.energycost = eDragon.energycost * airECMul
@@ -171,8 +173,7 @@ if tweakAirTrans then
 	for id, def in pairs(uDefs) do
 		if def.cruisealtitude then
 			if def.transportcapacity then
-				--TODO Preferably the held unit says whether it can fire.
-				--def['isfireplatform'] = true
+				def['isfireplatform'] = true
 			end
 			if tweakScreamers and def[wpn] then
 				local isATA = false
@@ -191,12 +192,12 @@ if tweakAirTrans then
 				end
 			end
 		elseif def.canmove then
-			if not def.customparams then
+			if not def[cps] then
 				def[cps] = {}
 			end
 			def[cps]['paratrooper'] = true
 			local fdm = 'fall_damage_multiplier'
-			if not def.customparams[fdm] then
+			if not def[cps][fdm] then
 				if def.movementclass and string.find(def.movementclass, 'HOVER') then
 					def[cps][fdm] = 0
 					def[cps]['water_'..fdm] = 0
@@ -205,6 +206,14 @@ if tweakAirTrans then
 					end
 				else
 					def[cps][fdm] = 0.25
+				end
+			end
+			if def[wds] then
+				for i = 1, #def[wds] do
+					if not def[wds][i][cps] then
+						def[wds][i][cps] = {}
+					end
+					def[wds][i][cps].collidefirebase = false
 				end
 			end
 		end
@@ -294,7 +303,7 @@ if tweakScreamers then
 	local w = nil
 	local btc = 'badtargetcategory'
 	aDef[wds][aWID].stockpile = false
-	aDef[wds][aWID].reloadtime = aDef[wds][aWID].reloadtime * 1.5
+	aDef[wds][aWID].reloadtime = aDef[wds][aWID].reloadtime * 2
 	i = indexOfWeapon(aDef, aWID, 1)
 	if i > 0 then
 		w = aDef[wpn][i]
@@ -305,7 +314,7 @@ if tweakScreamers then
 		end
 	end
 	cDef[wds][cWID].stockpile = false
-	cDef[wds][cWID].reloadtime = cDef[wds][cWID].reloadtime * 1.5
+	cDef[wds][cWID].reloadtime = cDef[wds][cWID].reloadtime * 2
 	i = indexOfWeapon(cDef, cWID, 1)
 	if i > 0 then
 		w = cDef[wpn][i]
