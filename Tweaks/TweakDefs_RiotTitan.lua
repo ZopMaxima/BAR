@@ -29,7 +29,7 @@ local function clear(m)
 end
 
 local function setDesc(def, name, tip)
-	local latin = {'en','fr','de'}
+	local latin = {'en','fr','de','es'}
 	if def then
 		for i = 1, #latin do
 			if name then
@@ -68,13 +68,14 @@ if tweakShieldTitan then
 	def.buildtime = def.buildtime * 2.5
 	def.radardistance = 0
 	def.sonardistance = 0
-	def[cps].paralyzemultiplier = 0.25
+	def.explodeas = 'mistexploxxl'
+	def[cps].paralyzemultiplier = 0.2
 	--Shield
 	local shieldRad = def[cps]['shield_radius']
 	local wDefShield = def[wds]['repulsor']
 	wDefShield.shield.force = 5
 	wDefShield.shield.power = 10000
-	wDefShield.shield.powerregen = 250
+	wDefShield.shield.powerregen = 350
 	wDefShield.shield.powerregenenergy = wDefShield.shield.powerregen * 10
 	wDefShield.shield.intercepttype = 65535
 	--Arms
@@ -87,6 +88,7 @@ if tweakShieldTitan then
 	wDefArms.weaponvelocity = wDefArms.weaponvelocity * 1.5
 	wDefArms.reloadtime = wDefArms.reloadtime * 0.75
 	wDefArms.range = 500
+	wDefArms.soundstart = 'kroggie2xs'
 	def[wpn][1].badtargetcategory = "VTOL GROUNDSCOUT"
 	def[wpn][1].onlytargetcategory = 'SURFACE'
 	--Shoulder
@@ -100,7 +102,9 @@ if tweakShieldTitan then
 	wDefLazer.reloadtime = 0.5
 	wDefLazer.energypershot = wDefLazer.energypershot * 2
 	wDefLazer.range = round10(shieldRad * 1.4)
-	wDefLazer.damage.default = wDefLazer.damage.default * 0.3125
+	wDefLazer.damage.default = round10(wDefLazer.damage.default * 0.325)
+	wDefLazer.damage.commanders = wDefLazer.damage.default
+	wDefLazer.damage.vtol = wDefLazer.damage.default
 	--Backpack
 	def[wpn][3].def = uDefs['legcomt2def'][wpn][3].def
 	local wDefEMP = def[wds]['empgrenade']
@@ -111,6 +115,7 @@ if tweakShieldTitan then
 	wDefEMP.range = wDefArms.range
 	wDefEMP.weaponvelocity = wDefArms.weaponvelocity * 0.5
 	wDefEMP.damage.default = 10000
+	wDefEMP.soundstart = 'lasfirerb'
 	def[wpn][3].badtargetcategory = "VTOL GROUNDSCOUT"
 	def[wpn][3].onlytargetcategory = 'SURFACE EMPABLE'
 	--Labs
