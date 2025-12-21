@@ -16,7 +16,7 @@ local hasExtras = mods.experimentalextraunits
 local hasHoverTide = mods.map_lavatiderhythm == 'enabled' and mods.map_lavahighlevel <= 1 and mods.map_lavahighdwell <= 1
 
 local noLRPC = mods.unit_restrictions_nolrpc
-local noLOLCannon = noLRPC or mods.unit_restrictions_noendgamelrpc
+local noLOLCannon = mods.unit_restrictions_noendgamelrpc
 local noPawnLauncher = noLOLCannon or true --TODO Pawn Bounce Thug Battery etc...
 local noNukes = mods.unit_restrictions_nonukes
 local noTacs = mods.unit_restrictions_notacnukes
@@ -26,7 +26,6 @@ local noAir = mods.unit_restrictions_noair
 local removeExcess = true --Delete unpopular units to reduce constructor pages.
 
 local tweakBehemoth = true
-local tweakSol = true
 local tweakWrecks = true
 local tweakMini = true
 local tweakQuadLT = true
@@ -97,7 +96,7 @@ local function mergeRec(def, ref)
 end
 
 local function setDesc(def, name, tip)
-	local latin = {'en','fr','de'}
+	local latin = {'en','fr','de','es'}
 	if def then
 		for i = 1, #latin do
 			if name then
@@ -211,24 +210,6 @@ if tweakBehemoth then
 		def.buildtime = math.floor(def.buildtime * ((mMul + eMul) * 0.5))
 	end
 	def[cps].paralyzemultiplier = 2.5
-end
-
---Sol Nerf
-if tweakSol and hasLegion then
-	local mMul = 1.25
-	local eMul = 2.75
-	local def = uDefs['legeheatraymech']
-	--Compatibility Check
-	local cost = def.metalcost
-	if cost == 23500 then
-		def.metalcost = round100(def.metalcost * mMul)
-		def.energycost = round100(def.energycost * mMul)
-		def.buildtime = math.floor(def.buildtime * ((mMul + eMul) * 0.5))
-		def = uDefs['legeheatraymech_old']
-		def.metalcost = round100(def.metalcost * mMul)
-		def.energycost = round100(def.energycost * mMul)
-		def.buildtime = math.floor(def.buildtime * ((mMul + eMul) * 0.5))
-	end
 end
 
 --Smaller Wrecks
@@ -366,8 +347,9 @@ if hasScavs then
 		wDef1.duration = 0.05
 		wDef1.cegtag = 'railgun'
 		wDef1.rgbcolor2 = '1 1 1'
-		wDef1.areaofeffect = wDef1.areaofeffect * 2
+		wDef1.areaofeffect = 100
 		wDef1.edgeeffectiveness = 0.7
+		wDef1.impactonly = nil;
 		wDef1.collidefriendly = false
 		wDef1.stockpile = false
 		wDef1.stockpilelimit = 0
@@ -380,6 +362,8 @@ if hasScavs then
 		wDef2.thickness = 2
 		mergeRec(wDef3, uDefs['legdtr'][wds]['corlevlr_weapon'])
 		wDef3.reloadtime = wDef3.reloadtime * 0.375
+		wDef3.impulsefactor = wDef3.impulsefactor * 2
+		wDef3.proximitypriority = 1
 		wDef3.rgbcolor = '1 0.8 0'
 		setDesc(def, 'Trident', 'Super Heavy Railgun Defense')
 		def.icontype = cT4
@@ -406,7 +390,7 @@ end
 local function mulConv(def)
 	local x = 6
 	local yard = 'oooooo oooooo oooooo oooooo oooooo oooooo'
-	if def then
+	if def and def.footprintx >= x then
 		local scale = x / def.footprintx
 		local cv = 'collisionvolume'
 		def[cv..'offsets'] = def[cv..'offsets'] * scale

@@ -38,7 +38,7 @@ local function mergeRec(def, ref)
 end
 
 local function setDesc(def, name, tip)
-	local latin = {'en','fr','de'}
+	local latin = {'en','fr','de','es'}
 	if def then
 		for i = 1, #latin do
 			if name then
@@ -143,8 +143,9 @@ if hasScavs then
 		wDef1.duration = 0.05
 		wDef1.cegtag = 'railgun'
 		wDef1.rgbcolor2 = '1 1 1'
-		wDef1.areaofeffect = wDef1.areaofeffect * 2
+		wDef1.areaofeffect = 100
 		wDef1.edgeeffectiveness = 0.7
+		wDef1.impactonly = nil;
 		wDef1.collidefriendly = false
 		wDef1.stockpile = false
 		wDef1.stockpilelimit = 0
@@ -157,6 +158,8 @@ if hasScavs then
 		wDef2.thickness = 2
 		mergeRec(wDef3, uDefs['legdtr'][wds]['corlevlr_weapon'])
 		wDef3.reloadtime = wDef3.reloadtime * 0.375
+		wDef3.impulsefactor = wDef3.impulsefactor * 2
+		wDef3.proximitypriority = 1
 		wDef3.rgbcolor = '1 0.8 0'
 		setDesc(def, 'Trident', 'Super Heavy Railgun Defense')
 		def.icontype = cT4
