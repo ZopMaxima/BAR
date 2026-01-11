@@ -57,7 +57,7 @@ if hasScavs and tweakMini then
 	local epsMul = 0.5
 	local aWDef = uDefs['armminivulc'][wds]['armminivulc_weapon']
 	local cWDef = uDefs['corminibuzz'][wds]['corminibuzz_weapon']
-	local lWDef = uDefs['legministarfall'][wds]['ministarfire']
+	local lWDef = uDefs['legministarfall'][wds]['starfire']
 	aWDef.range = round10(aWDef.range * rangeMul)
 	cWDef.range = round10(cWDef.range * rangeMul)
 	lWDef.range = round10(lWDef.range * rangeMul)
@@ -139,7 +139,7 @@ if hasScavs then
 		local wDef2 = def[wds]['armageddon_blue_laser']
 		local wDef3 = def[wds]['armageddon_green_laser']
 		mergeRec(wDef1, uDefs['legsrailt4'][wds]['railgunt2'])
-		wDef1.reloadtime = wDef1.reloadtime * 1.5
+		wDef1.reloadtime = wDef1.reloadtime * 2
 		wDef1.duration = 0.05
 		wDef1.cegtag = 'railgun'
 		wDef1.rgbcolor2 = '1 1 1'

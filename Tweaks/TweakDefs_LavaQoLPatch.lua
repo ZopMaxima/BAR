@@ -261,7 +261,7 @@ if hasScavs and tweakMini and hasLegion then
 	local epsMul = 0.5
 	local aWDef = uDefs['armminivulc'][wds]['armminivulc_weapon']
 	local cWDef = uDefs['corminibuzz'][wds]['corminibuzz_weapon']
-	local lWDef = uDefs['legministarfall'][wds]['ministarfire']
+	local lWDef = uDefs['legministarfall'][wds]['starfire']
 	aWDef.range = round10(aWDef.range * rangeMul)
 	cWDef.range = round10(cWDef.range * rangeMul)
 	lWDef.range = round10(lWDef.range * rangeMul)
@@ -343,7 +343,7 @@ if hasScavs then
 		local wDef2 = def[wds]['armageddon_blue_laser']
 		local wDef3 = def[wds]['armageddon_green_laser']
 		mergeRec(wDef1, uDefs['legsrailt4'][wds]['railgunt2'])
-		wDef1.reloadtime = wDef1.reloadtime * 1.5
+		wDef1.reloadtime = wDef1.reloadtime * 2
 		wDef1.duration = 0.05
 		wDef1.cegtag = 'railgun'
 		wDef1.rgbcolor2 = '1 1 1'
@@ -388,27 +388,35 @@ local function mulAfus(t2, t3, hpMul, scale)
 end
 
 local function mulConv(def)
-	local x = 6
-	local yard = 'oooooo oooooo oooooo oooooo oooooo oooooo'
-	if def and def.footprintx >= x then
-		local scale = x / def.footprintx
-		local cv = 'collisionvolume'
-		def[cv..'offsets'] = def[cv..'offsets'] * scale
-		def[cv..'scales'] = def[cv..'scales'] * scale
-		def[cv..'type'] = def[cv..'type'] * scale
-		def.footprintx = x
-		def.footprintz = x
-		def.yardmap = yard
-		if def[fds] then
-			local d = def[fds].dead
-			if d then
-				d.footprintx = x
-				d.footprintz = x
+	if def then
+		local x = 6
+		local yard = 'oooooo oooooo oooooo oooooo oooooo oooooo'
+		local foot = def.footprintx
+		if foot > x then
+			local cvo = 'collisionvolumeoffsets'
+			local cvs = 'collisionvolumescales'
+			if def[cvo] then
+				def[cvo] = '0 0 0'
 			end
-			local h = def[fds].heap
-			if h then
-				h.footprintx = x
-				h.footprintz = x
+			if def[cvs] then
+				def[cvs] = '90 45 90'
+			end
+			def.footprintx = x
+			def.footprintz = x
+			def.yardmap = yard
+			if def[fds] then
+				local d = def[fds].dead
+				if d then
+					d[cvo] = '0 0 0'
+					d[cvs] = '90 45 90'
+					d.footprintx = x
+					d.footprintz = x
+				end
+				local h = def[fds].heap
+				if h then
+					h.footprintx = x
+					h.footprintz = x
+				end
 			end
 		end
 	end

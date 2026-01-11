@@ -65,7 +65,7 @@ local function remodel(def, name, hasDead, hasDecal)
 end
 
 local function setDesc(def, name, tip)
-	local latin = {'en','fr','de'}
+	local latin = {'en','fr','de','es'}
 	if def then
 		for i = 1, #latin do
 			if name then
