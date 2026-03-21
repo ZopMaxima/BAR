@@ -11,19 +11,6 @@ local function uMax(id, n)
 	end
 end
 
---No stockpile exploits.
-local nukeIDs = {'armsilo','corsilo','legsilo','armseadragon','cordesolator'}
-for i = 1, #nukeIDs do
-	local def = uDefs[nukeIDs[i]]
-	if def and def[wds] then
-		for k, v in pairs(def[wds]) do
-			if v.stockpile and v[cps] and v[cps].stockpilelimit then
-				v[cps].stockpilelimit = 1
-			end
-		end
-	end
-end
-
 --Enable
 local onIDs = {'armsilo','armamd'}
 for i = 1, #onIDs do
@@ -31,7 +18,7 @@ for i = 1, #onIDs do
 end
 
 --Disable
-local offIDs = {'corsilo','legsilo','armseadragon','cordesolator','corfmd','legabm','armscab','cormabm'}
+local offIDs = {'corsilo','legsilo','armseadragon','cordesolator','corfmd','legabm','armscab','cormabm','legavantinuke'}
 for i = 1, #offIDs do
 	uMax(offIDs[i], 0)
 end
@@ -54,12 +41,27 @@ for id, def in pairs(uDefs) do
 			end
 		end
 	end
-	--Reliable AN fire rate.
+	--Weapons
 	if def[wds] then
 		for k, v in pairs(def[wds]) do
+			--No stockpile exploits.
+			if v[cps] and v[cps].nuclear and v.stockpile then
+				v[cps].stockpilelimit = 1
+			end
+			--Reliable AN fire rate.
 			if v.interceptor then
-				v.reloadtime = v.reloadtime * 0.5
-				v.stockpiletime = v.stockpiletime * 0.125
+				if v.reloadtime then
+					v.reloadtime = v.reloadtime * 0.5
+				end
+				if v.stockpiletime then
+					v.stockpiletime = v.stockpiletime * 0.125
+				end
+				if v.metalpershot then
+					v.metalpershot = v.metalpershot * 0.5
+				end
+				if v.energypershot then
+					v.energypershot = v.energypershot * 0.5
+				end
 				if v.stockpile and v[cps] and v[cps].stockpilelimit then
 					v[cps].stockpilelimit = 10
 				end
