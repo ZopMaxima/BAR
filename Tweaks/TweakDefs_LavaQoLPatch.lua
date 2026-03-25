@@ -136,6 +136,7 @@ if noNukes then
 	rmvID('legabm')
 	rmvID('armscab')
 	rmvID('cormabm')
+	rmvID('legavantinuke')
 	if hasLegion then
 		local ramp = uDefs['legrampart']
 		ramp[wpn][1] = ramp[wpn][2]
