@@ -1,8 +1,16 @@
 --Lava Sky Ops (Zop)
+local mods = Spring.GetModOptions()
 local uDefs = UnitDefs or {}
 local cps = 'customparams'
 local wds = 'weapondefs'
 local wpn = 'weapons'
+
+local catAirATA = 'AIR_ATA'
+local catAirATS = 'AIR_ATS'
+local catAirUtil = 'AIR_UTIL'
+local cruiseOrbit = 1000
+
+local noSea = mods.map_waterislava
 
 local tweakSeaPlane = true
 local tweakTorpedo = true
@@ -10,8 +18,6 @@ local tweakAirPrice = true
 local tweakAirTrans = true
 local tweakFlags = true
 local tweakScreamers = true
-
-local catFig = 'ATAFIGHTER'
 
 local function round10(n)
 	return math.floor(n * 0.1) * 10
@@ -69,50 +75,66 @@ local function mergeWeapons(def, defWID, ref, refWID)
 	end
 end
 
+local function categorize(def, key, cat)
+	if def then
+		if def[key] then
+			def[key] = def[key]..' '..cat
+		else
+			def[key] = cat
+		end
+	end
+end
+
+local function tweakSeaPlatform(id, hpReset, height)
+	local def = UnitDefs[id]
+	if def then
+		local hp = def.health
+		if hp == 0 then
+			def.health = hpReset
+		end
+		def.metalcost = round10(def.metalcost * 0.8)
+		def.energycost = round10(def.energycost * 1.25)
+		if noSea then
+			unwater(id)
+			def.waterline = def.waterline + height
+			def.maxslope = 15
+			def.yardmap = 'oooooo oeeeeo oeeeeo oeeeeo oeeeeo oooooo'
+		end
+		if def[cps] then
+			def[cps].enabled_on_no_sea_maps = true
+		end
+	end
+end
+
 --Seaplanes on land.
 if tweakSeaPlane then
 	local asp = 'armplat'
 	local csp = 'corplat'
-	local yard = 'oooooo oeeeeo oeeeeo oeeeeo oeeeeo oooooo'
-	local aspDef = uDefs[asp]
-	local cspDef = uDefs[csp]
-	unwater(asp)
-	local aspHP = aspDef.health
-	if aspHP == 0 then
-		aspDef.health = 2000
-	end
-	unwater(csp)
-	local cspHP = cspDef.health
-	if cspHP == 0 then
-		cspDef.health = 2200
-	end
-	aspDef.waterline = aspDef.waterline + 20
-	aspDef.maxslope = 15
-	aspDef.yardmap = yard
-	cspDef.waterline = cspDef.waterline + 50
-	cspDef.maxslope = 15
-	cspDef.yardmap = yard
+	local lsp = 'legsplab'
+	tweakSeaPlatform(asp, 2000, 20)
+	tweakSeaPlatform(csp, 2200, 50)
+	tweakSeaPlatform(lsp, 2200, 50)
 	addBO('armcom', asp)
 	addBO('corcom', csp)
-	addBO('legcom', csp)
+	addBO('legcom', lsp)
 	addBO('armca', asp)
 	addBO('corca', csp)
-	addBO('legca', csp)
+	addBO('legca', lsp)
 	addBO(asp, 'armca')
 	addBO(asp, 'armlance')
 	addBO(csp, 'corca')
-	addBO(csp, 'legca')
 	addBO(csp, 'cortitan')
-	addBO(csp, 'legatorpbomber')
+	addBO(lsp, 'legca')
+	addBO(lsp, 'legatorpbomber')
 	addBO('armap', 'armcsa')
 	addBO('armap', 'armseap')
 	addBO('corap', 'corcsa')
 	addBO('corap', 'corseap')
-	addBO('legap', 'corcsa')
-	addBO('legap', 'corseap')
+	addBO('legap', 'legspcon')
+	addBO('legap', 'legsptorpgunship')
 	addBO('armcsa', 'armaap')
 	addBO('corcsa', 'coraap')
-	addBO('corcsa', 'legaap')
+	addBO('legspcon', 'legaap')
 end
 
 --Torpedo buffs to fight T3.
@@ -120,7 +142,8 @@ if tweakTorpedo then
 	local torpHPMul = 2
 	local torpDmgMul = 2
 	for id, def in pairs(uDefs) do
-		if def.weapondefs and (def.cruisealtitude or (not def.canmove)) then
+		local ca = def.cruisealtitude
+		if def.weapondefs and ((ca and ca < cruiseOrbit) or (not def.canmove)) then
 			local hasWW = false
 			for k, v in pairs(def.weapondefs) do
 				if v.waterweapon then
@@ -143,7 +166,8 @@ if tweakAirPrice then
 	local airDrainMMul = 0.001
 	local airDrainEMul = 0.01
 	for id, def in pairs(uDefs) do
-		if def.cruisealtitude then
+		local ca = def.cruisealtitude
+		if ca and ca < cruiseOrbit then
 			if def.weapondefs then
 				local mcMul = math.max(1, math.min(airMCCutoff / def.metalcost, airMCMul))
 				def.buildtime = math.floor(def.buildtime * ((mcMul + airECMul) * 0.5))
@@ -171,25 +195,28 @@ end
 --Transport paratrooper.
 if tweakAirTrans then
 	for id, def in pairs(uDefs) do
-		if def.cruisealtitude then
+		local ca = def.cruisealtitude
+		if ca and ca < cruiseOrbit then
+			local isATA = false
+			local isATS = false
 			if def.transportcapacity then
 				def['isfireplatform'] = true
+				isATS = true
 			end
-			if tweakScreamers and def[wpn] then
-				local isATA = false
-				local isATS = false
+			if def[wpn] then
 				for i = 1, #def[wpn] do
 					local otc = def[wpn][i].onlytargetcategory
-					isATA = otc == 'VTOL'
-					isATS = isATA == false
+					local ata = otc and otc == 'VTOL'
+					isATA = isATA or ata
+					isATS = isATS or ata == false
 				end
-				if isATA and isATS == false then
-					if def.category then
-						def.category = def.category..' '..catFig
-					else
-						def.category = catFig
-					end
-				end
+			end
+			if isATS then
+				categorize(def, 'category', catAirATS)
+			elseif isATA then
+				categorize(def, 'category', catAirATA)
+			else
+				categorize(def, 'category', catAirUtil)
 			end
 		elseif def.canmove then
 			if not def[cps] then
@@ -254,85 +281,93 @@ if tweakFlags then
 	aWDef.reloadtime = aWDef.reloadtime * 1.5
 	local i1 = indexOfWeapon(aDef, aWID, 1)
 	local i2 = indexOfWeapon(aDef, aWID, i1 + 1)
-	aDef[wpn][i1].maindir = "0 -1 -2"
-	aDef[wpn][i1].proximitypriority = 1
-	aDef[wpn][i2].proximitypriority = -1
+	aDef[wpn][i1].maxangledif = nil
+	aDef[wpn][i2].maxangledif = nil
+	aDef[wpn][i1].maindir = nil
+	aDef[wpn][i2].maindir = nil
 	--Cor
+	local cwID2 = cWID..'2'
 	clear(cWDef)
 	mergeRec(cWDef, cAAWDef)
 	mergeWeapons(cDef, cWID, cAADef, cAAWID)
-	cWDef.reloadtime = cWDef.reloadtime * 0.375
-	cWDef.burst = cWDef.burst * 0.5
-	cWDef.burstrate = cWDef.burstrate * 1.5
+	cWDef.burstrate = 0.05
+	cWDef.burst = 4
+	cWDef.reloadtime = cWDef.burstrate * cWDef.burst
 	cWDef.range = round10(cWDef.range * 1.25)
+	cWDef.proximitypriority = 1
 	cWDef[cps].noattackrangearc = nil
+	cWDef.damage.vtol = cWDef.damage.vtol * 0.5
+	cDef[wds][cwID2] = table.copy(cWDef)
+	cDef[wds][cwID2].proximitypriority = -1
 	i1 = indexOfWeapon(cDef, cWID, 1)
 	i2 = indexOfWeapon(cDef, cWID, i1 + 1)
+	cDef[wpn][i1].fastautoretargeting = true
+	cDef[wpn][i2].fastautoretargeting = true
 	cDef[wpn][i1].maxangledif = nil
-	cDef[wpn][i1].maindir = '-1.5 0 2'
 	cDef[wpn][i2].maxangledif = nil
-	cDef[wpn][i2].maindir = '1.5 0 2'
+	cDef[wpn][i1].maindir = nil
+	cDef[wpn][i2].maindir = nil
+	cDef[wpn][i2].def = cwID2
 	--Leg
 	clear(lWDef)
 	mergeRec(lWDef, lAAWDef)
 	mergeWeapons(lDef, lWID, lAADef, lAAWID)
-	lWDef.turnrate = lWDef.turnrate * 1.25
-	lWDef.weaponvelocity = lWDef.weaponvelocity * 0.8
-	lWDef.burst = 3
-	lWDef.burstrate = 0.01
-	lWDef.damage.vtol = lWDef.damage.vtol * 0.5
+	lWDef.turnrate = lWDef.turnrate * 1.5
+	lWDef.weaponvelocity = lWDef.weaponvelocity * 0.375
+	lWDef.burst = 6
+	lWDef.burstrate = 0.025
+	lWDef.reloadtime = lWDef.reloadtime * 2
 	lWDef.dance = 250
+	lWDef.sprayangle = 1000
+	lWDef.trajectoryheight = 0.25
 	lWDef.proximitypriority = nil
 	lWDef.stockpile = false
-	lWDef.maindir = "1 0 0"
-	lWDef.cegtag = 'missiletrailaa-medium'
-	lWDef.smokesize = lWDef.smokesize * 0.75
+	lWDef.model = 'cormissile.s3o'
+	lWDef.cegtag = 'missiletrailaa'
+	lWDef.texture2 = 'smoketrailaa3'
+	lWDef.smoketime = lWDef.smoketime * 0.25
+	lWDef.smokesize = lWDef.smokesize * 0.25
+	lWDef.startsound = 'packolau'
 	lWDef.explosiongenerator = 'custom:genericshellexplosion-medium-aa'
 	lWDef.areaofeffect = lWDef.areaofeffect * 0.2
 end
 
+--Redistribute AoE, prefer ATS targets.
+local function tweakLRAA(uID, wID)
+	local wDef = nil
+	local def = uDefs[uID]
+	if def then
+		wDef = def[wds][wID]
+		if wDef then
+			wDef.damage.vtol = wDef.damage.vtol * 2
+			wDef.edgeeffectiveness = 0
+			wDef.areaofeffect = wDef.areaofeffect * 0.5
+			local i = indexOfWeapon(def, wID, 1)
+			if i > 0 then
+				categorize(def[wpn][i], 'badtargetcategory', catAirATA)
+				categorize(def[wpn][i], 'badtargetcategory', catAirUtil)
+			end
+		end
+	end
+	return wDef
+end
+
 --More reliable LRAA.
 if tweakScreamers then
-	local aDef = uDefs['armmercury']
-	local cDef = uDefs['corscreamer']
-	local lDef = uDefs['leglraa']
-	local aWID = 'arm_advsam'
-	local cWID = 'cor_advsam'
-	local lWID = 'railgunt2'
-	local i = 0
-	local w = nil
-	local btc = 'badtargetcategory'
-	aDef[wds][aWID].stockpile = false
-	aDef[wds][aWID].reloadtime = aDef[wds][aWID].reloadtime * 2
-	i = indexOfWeapon(aDef, aWID, 1)
-	if i > 0 then
-		w = aDef[wpn][i]
-		if w[btc] then
-			w[btc] = w[btc]..' '..catFig
-		else
-			w[btc] = catFig
-		end
+	local wd = nil
+	wd = tweakLRAA('armmercury', 'arm_advsam')
+	if wd then
+		wd.stockpiletime = wd.stockpiletime * 0.5
 	end
-	cDef[wds][cWID].stockpile = false
-	cDef[wds][cWID].reloadtime = cDef[wds][cWID].reloadtime * 2
-	i = indexOfWeapon(cDef, cWID, 1)
-	if i > 0 then
-		w = cDef[wpn][i]
-		if w[btc] then
-			w[btc] = w[btc]..' '..catFig
-		else
-			w[btc] = catFig
-		end
+	wd = tweakLRAA('corscreamer', 'cor_advsam')
+	if wd then
+		wd.stockpiletime = wd.stockpiletime * 0.5
 	end
-	lDef[wds][lWID].burst = lDef[wds][lWID].burst + 1
-	lDef[wds][lWID].range = 2400
-	i = indexOfWeapon(lDef, lWID, 1)
-	if i > 0 then
-		w = lDef[wpn][i]
-		if w[btc] then
-			w[btc] = w[btc]..' '..catFig
-		else
-			w[btc] = catFig
-		end
+	wd = tweakLRAA('leglraa', 'railgunt2')
+	if wd then
+		wd.burst = wd.burst + 1
+		wd.cegtag = nil
+		wd.noExplode = true
+		wd.overpenetrate = true
 	end
 end
