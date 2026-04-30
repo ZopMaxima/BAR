@@ -26,6 +26,7 @@ local noAir = mods.unit_restrictions_noair
 local removeExcess = true --Delete unpopular units to reduce constructor pages.
 
 local tweakBehemoth = true
+local tweakReclaim = true
 local tweakWrecks = true
 local tweakMini = true
 local tweakQuadLT = true
@@ -213,6 +214,18 @@ if tweakBehemoth then
 	def[cps].paralyzemultiplier = 2.5
 end
 
+--Defenses need purpose.
+if tweakReclaim then
+	local ws = 'workertime'
+	local rs = 'reclaimspeed'
+	for k, v in pairs(uDefs) do
+		local bp = v[ws] or v[rs]
+		if bp and v.canreclaim and not v.canmove then
+			v[rs] = math.min(bp, round10(math.sqrt(bp * mods.multiplier_buildpower * 2) * 10)) --Nerf past 200
+		end
+	end
+end
+
 --Smaller Wrecks
 if tweakWrecks then
 	local scale = 0.75
@@ -312,7 +325,7 @@ if hasScavs and tweakQuadLT and hasLegion then
 		--Scatter Targets
 		local btc = 'badtargetcategory'
 		if i == 1 or i == 2 then
-			aDef[wpn][i][btc] = "VTOL GROUNDSCOUT"
+			aDef[wpn][i][btc] = 'VTOL GROUNDSCOUT'
 			cDef[wpn][i][btc] = aDef[wpn][i][btc]
 			lDef[wpn][i][btc] = aDef[wpn][i][btc]
 		end
@@ -350,7 +363,7 @@ if hasScavs then
 		wDef1.rgbcolor2 = '1 1 1'
 		wDef1.areaofeffect = 100
 		wDef1.edgeeffectiveness = 0.7
-		wDef1.impactonly = nil;
+		wDef1.impactonly = nil
 		wDef1.collidefriendly = false
 		wDef1.stockpile = false
 		wDef1.stockpilelimit = 0
