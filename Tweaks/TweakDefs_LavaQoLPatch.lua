@@ -214,14 +214,15 @@ if tweakBehemoth then
 	def[cps].paralyzemultiplier = 2.5
 end
 
---Defenses need purpose.
+--Nerf nanos, use combat units.
 if tweakReclaim then
 	local ws = 'workertime'
 	local rs = 'reclaimspeed'
+	local sqrtThreshold = 22.5 -- Nerf above 506.25
 	for k, v in pairs(uDefs) do
 		local bp = v[ws] or v[rs]
 		if bp and v.canreclaim and not v.canmove then
-			v[rs] = math.min(bp, round10(math.sqrt(bp * mods.multiplier_buildpower * 2) * 10)) --Nerf past 200
+			v[rs] = math.min(bp, round10(math.sqrt(bp * mods.multiplier_buildpower) * sqrtThreshold))
 		end
 	end
 end
