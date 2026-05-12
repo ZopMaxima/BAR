@@ -337,6 +337,7 @@ local function tweakLRAA(uID, wID)
 	local wDef = nil
 	local def = uDefs[uID]
 	if def then
+		def.airsightdistance = def.sightdistance * 1.5
 		wDef = def[wds][wID]
 		if wDef then
 			wDef.damage.vtol = wDef.damage.vtol * 2
@@ -365,7 +366,6 @@ if tweakScreamers then
 	end
 	wd = tweakLRAA('leglraa', 'railgunt2')
 	if wd then
-		wd.burst = wd.burst + 1
 		wd.cegtag = nil
 		wd.noExplode = true
 		wd.overpenetrate = true
