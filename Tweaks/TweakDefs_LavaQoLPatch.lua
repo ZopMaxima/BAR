@@ -273,17 +273,19 @@ end
 --Mini plasma as 'Cerberus' alternatives.
 if hasScavs and tweakMini and hasLegion then
 	local rangeMul = 1.25
-	local epsMul = 0.5
+	local dpsMul = 2
 	local aWDef = uDefs['armminivulc'][wds]['armminivulc_weapon']
 	local cWDef = uDefs['corminibuzz'][wds]['corminibuzz_weapon']
 	local lWDef = uDefs['legministarfall'][wds]['starfire']
 	aWDef.range = round10(aWDef.range * rangeMul)
 	cWDef.range = round10(cWDef.range * rangeMul)
 	lWDef.range = round10(lWDef.range * rangeMul)
-	local eps = 'energypershot'
-	aWDef[eps] = aWDef[eps] * epsMul
-	cWDef[eps] = cWDef[eps] * epsMul
-	lWDef[eps] = lWDef[eps] * epsMul
+	for k, v in pairs(aWDef.damage) do
+		aWDef.damage[k] = round10(v * dpsMul * (cWDef.range / aWDef.range))
+	end
+	for k, v in pairs(cWDef.damage) do
+		cWDef.damage[k] = v * dpsMul
+	end
 end
 
 --Quad towers.
@@ -450,7 +452,6 @@ if tweakEcoT3 then
 	--Arm
 	aT3Def.energystorage = aT3Def.energystorage * hpMul
 	aT3Def.stealth = true
-	aT3Def.radardistancejam = 25
 	--Leg
 	if hasLegion then
 		setDesc(lT3Def, nil, 'Produces '..lT3Def.energymake..' Energy (Hazardous)')
