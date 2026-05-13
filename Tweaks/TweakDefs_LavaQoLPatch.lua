@@ -153,9 +153,7 @@ end
 if removeExcess then
 	rmvBOArr(aACons, 'armdf')
 	rmvBOArr(aACons, 'armckfus')
-	rmvBOArr(lACons, 'cormexp')
 	if hasExtras and hasScavs then
-		--TODO Move prude to combat.
 		rmvID('armgmm')
 	end
 end
@@ -174,9 +172,8 @@ if noSea then
 			else
 				def.waterline = 0
 				def[mwd] = 1
-				if def[cps] then
-					def[cps].enabled_on_no_sea_maps = true
-				end
+				def[cps] = def[cps] or {}
+				def[cps].enabled_on_no_sea_maps = true
 			end
 		elseif min and min > 0 then
 			rmvID(id)
@@ -273,7 +270,6 @@ end
 --Mini plasma as 'Cerberus' alternatives.
 if hasScavs and tweakMini and hasLegion then
 	local rangeMul = 1.25
-	local dpsMul = 2
 	local aWDef = uDefs['armminivulc'][wds]['armminivulc_weapon']
 	local cWDef = uDefs['corminibuzz'][wds]['corminibuzz_weapon']
 	local lWDef = uDefs['legministarfall'][wds]['starfire']
@@ -281,11 +277,13 @@ if hasScavs and tweakMini and hasLegion then
 	cWDef.range = round10(cWDef.range * rangeMul)
 	lWDef.range = round10(lWDef.range * rangeMul)
 	for k, v in pairs(aWDef.damage) do
-		aWDef.damage[k] = round10(v * dpsMul * (cWDef.range / aWDef.range))
+		aWDef.damage[k] = v * 2
 	end
 	for k, v in pairs(cWDef.damage) do
-		cWDef.damage[k] = v * dpsMul
+		cWDef.damage[k] = math.floor(v * 2 * (aWDef.range / cWDef.range))
 	end
+	local sfd = uDefs['legstarfall'][wds]['starfire'].damage
+	lWDef.damage.shields = math.floor(lWDef.damage.default * (sfd.shields / sfd.default))
 end
 
 --Quad towers.
@@ -313,7 +311,7 @@ if hasScavs and tweakQuadLT and hasLegion then
 		aWDef.damage.default = math.floor(aWDef.damage.default * aMul)
 		aWDef.damage.vtol = math.floor(aWDef.damage.vtol * aMul)
 		aWDef.damage.commanders = nil
-		aDef[wpn][i]['fastautoretargeting'] = true
+		aDef[wpn][i].fastautoretargeting = true
 		--Cor
 		cWDef.range = round10(cWDef.range * 1.25)
 		cWDef.damage.commanders = nil
@@ -324,7 +322,7 @@ if hasScavs and tweakQuadLT and hasLegion then
 		local lMul = dps / (lWDef.damage.default / (lWDef.reloadtime / lWDef.burst))
 		lWDef.damage.default = math.floor(lWDef.damage.default * lMul)
 		lWDef.damage.commanders = nil
-		lDef[wpn][i]['fastautoretargeting'] = true
+		lDef[wpn][i].fastautoretargeting = true
 		--Scatter Targets
 		local btc = 'badtargetcategory'
 		if i == 1 or i == 2 then
