@@ -100,9 +100,8 @@ local function tweakSeaPlatform(id, hpReset, height)
 			def.maxslope = 15
 			def.yardmap = 'oooooo oeeeeo oeeeeo oeeeeo oeeeeo oooooo'
 		end
-		if def[cps] then
-			def[cps].enabled_on_no_sea_maps = true
-		end
+		def[cps] = def[cps] or {}
+		def[cps].enabled_on_no_sea_maps = true
 	end
 end
 
@@ -175,9 +174,8 @@ if tweakAirPrice then
 				def.energycost = math.floor(def.energycost * airECMul)
 			end
 			if not def.energymake then
-				def['activatewhenbuilt'] = true
-				def['onoffable'] = false
-				def['energyupkeep'] = math.min(def.metalcost * airDrainMMul, 1) * def.energycost * airDrainEMul
+				def.onoffable = false
+				def.energyupkeep = math.min(def.metalcost * airDrainMMul, 1) * def.energycost * airDrainEMul
 			end
 		end
 	end
@@ -200,7 +198,7 @@ if tweakAirTrans then
 			local isATA = false
 			local isATS = false
 			if def.transportcapacity then
-				def['isfireplatform'] = true
+				def.isfireplatform = true
 				isATS = true
 			end
 			if def[wpn] then
@@ -219,10 +217,8 @@ if tweakAirTrans then
 				categorize(def, 'category', catAirUtil)
 			end
 		elseif def.canmove then
-			if not def[cps] then
-				def[cps] = {}
-			end
-			def[cps]['paratrooper'] = true
+			def[cps] = def[cps] or {}
+			def[cps].paratrooper = true
 			local fdm = 'fall_damage_multiplier'
 			if not def[cps][fdm] then
 				if def.movementclass and string.find(def.movementclass, 'HOVER') then
@@ -273,7 +269,7 @@ if tweakFlags then
 	aDef.turnrate = aDef.turnrate * 1.25
 	cDef.turnrate = cDef.turnrate * 1.25
 	lDef.turnrate = lDef.turnrate * 1.125
-	lDef['radardistancejam'] = 600
+	lDef.radardistancejam = 600
 	--Arm
 	clear(aWDef)
 	mergeRec(aWDef, aAAWDef)
