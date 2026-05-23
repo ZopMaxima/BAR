@@ -162,10 +162,11 @@ end
 --Disable sea and water landing, keep mex and geo.
 if noSea then
 	local mwd = 'minwaterdepth'
-	uDefs['armuwgeo'][mwd] = uDefs['coruwgeo'][mwd]
+	local uwRef = uDefs['coruwgeo']
+	uDefs['armuwgeo'][mwd] = uwRef[mwd]
 	for id, def in pairs(uDefs) do
 		if def[cps].metal_extractor or def[cps].geothermal then
-			def.maxwaterdepth = nil
+			def.maxwaterdepth = uwRef.maxwaterdepth
 		end
 		local min = def[mwd]
 		if hasHoverTide and min then
