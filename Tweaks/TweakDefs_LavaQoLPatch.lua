@@ -1,4 +1,5 @@
 --Lava QoL Patch (Zop)
+--Quad Pharos pick by MGGW
 local mods = Spring.GetModOptions()
 local uDefs = UnitDefs or {}
 local cps = 'customparams'
@@ -158,12 +159,14 @@ if removeExcess then
 	end
 end
 
---Disable sea and water landing.
+--Disable sea and water landing, keep mex and geo.
 if noSea then
 	local mwd = 'minwaterdepth'
-	--Arm Geo Fix
 	uDefs['armuwgeo'][mwd] = uDefs['coruwgeo'][mwd]
 	for id, def in pairs(uDefs) do
+		if def[cps].metal_extractor or def[cps].geothermal then
+			def.maxwaterdepth = nil
+		end
 		local min = def[mwd]
 		if hasHoverTide and min then
 			local isEco = def.energymake or def.metalmake or def[cps].unitgroup == 'energy' or def[cps].unitgroup == 'metal'
@@ -185,10 +188,6 @@ if noSea then
 			if def.maxwaterdepth then
 				def.maxwaterdepth = 0
 			end
-		end
-		--Metal
-		if def[cps].metal_extractor then
-			def.maxwaterdepth = 0
 		end
 	end
 end
@@ -230,20 +229,25 @@ if tweakWrecks then
 	if noAir then
 		scale = 0.25
 	end
+	local cr = 'crushresistance'
+	local mc = 'movementclass'
 	local t3Crush = 1400
-	local noCrush = 100000
+	local noCrush = 2500000
 	local mcMul = 0.4
 	local hpMul = 0.1
 	for id, def in pairs(uDefs) do
 		--Most epic bots are smaller than Titan.
-		if def.movementclass and def.movementclass == 'EPICBOT' then
-			def.movementclass = 'HABOT5'
+		if def[mc] and def[mc] == 'EPICBOT' then
+			def[mc] = 'HABOT5'
 		end
 		if def.canmove and def[fds] and def[fds].dead then
 			local dead = def[fds].dead
 			dead.footprintx = math.max(1, math.floor(dead.footprintx * scale))
 			dead.footprintz = math.max(1, math.floor(dead.footprintz * scale))
-			if not dead.crushresistance then
+			if def[cps].iscommander then
+				dead[cr] = noCrush + 1
+			end
+			if not dead[cr] then
 				local mass = 0
 				if dead.mass then
 					mass = dead.mass
@@ -259,12 +263,12 @@ if tweakWrecks then
 					end
 				end
 				if mass >= t3Crush and mass < noCrush then
-					dead.crushresistance = t3Crush - 1
+					dead[cr] = t3Crush - 1
 				end
 			end
 		end
 	end
-	uDefs['armbanth'].movementclass = 'EPICBOT'
+	uDefs['armbanth'][mc] = 'EPICBOT'
 end
 
 --Mini plasma as 'Cerberus' alternatives.
@@ -301,28 +305,27 @@ if hasScavs and tweakQuadLT and hasLegion then
 		local cWDef = cDef[wds]['hllt_'..i]
 		local lWDef = lDef[wds]['hllt_'..i]
 		local dps = cWDef.damage.default / cWDef.reloadtime
+		local wr = cWDef.range + 100
 		--Arm
 		mergeRec(aWDef, uDefs['armbeamer'][wds]['armbeamer_weapon'])
-		aWDef.range = round10(aWDef.range * 1.2)
+		aWDef.range = wr - 35
 		aWDef.reloadtime = aWDef.reloadtime + 0.075
 		aWDef.beamtime = aWDef.reloadtime
 		aWDef.thickness = aWDef.thickness - ((i - 1) * 0.5)
 		local aMul = dps / (aWDef.damage.default / aWDef.reloadtime)
-		aWDef.damage.default = math.floor(aWDef.damage.default * aMul)
-		aWDef.damage.vtol = math.floor(aWDef.damage.vtol * aMul)
-		aWDef.damage.commanders = nil
+		for k, v in pairs(aWDef.damage) do
+			aWDef.damage[k] = math.floor(v * aMul)
+		end
 		aDef[wpn][i].fastautoretargeting = true
 		--Cor
-		cWDef.range = round10(cWDef.range * 1.25)
-		cWDef.damage.commanders = nil
+		cWDef.range = wr
 		--Leg
-		mergeRec(lWDef, uDefs['legmg'][wds]['armmg_weapon'])
-		lWDef.reloadtime = lWDef.reloadtime + ((i - 1) * (1 / lWDef.burst))
-		lWDef.burst = lWDef.burst + (i - 1)
-		local lMul = dps / (lWDef.damage.default / (lWDef.reloadtime / lWDef.burst))
-		lWDef.damage.default = math.floor(lWDef.damage.default * lMul)
-		lWDef.damage.commanders = nil
-		lDef[wpn][i].fastautoretargeting = true
+		mergeRec(lWDef, uDefs['leglht'][wds]['heat_ray'])
+		lWDef.range = wr - 15
+		local lMul = dps / (lWDef.damage.default / lWDef.reloadtime)
+		for k, v in pairs(lWDef.damage) do
+			lWDef.damage[k] = math.floor(v * lMul)
+		end
 		--Scatter Targets
 		local btc = 'badtargetcategory'
 		if i == 1 or i == 2 then
@@ -338,7 +341,7 @@ if hasScavs and tweakQuadLT and hasLegion then
 		end
 	end
 	setDesc(aDef, 'Quad Beamer', 'Heavy Beam Laser Turret')
-	setDesc(lDef, 'Quad Cacophony', 'Heavy Machine Gun Turret')
+	setDesc(lDef, 'Quad Pharos', 'Heavy Heat Ray Tower')
 	aDef.icontype = cLT
 	lDef.icontype = cLT
 	addBOArr(aACons, aLT)
