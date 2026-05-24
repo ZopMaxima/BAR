@@ -165,7 +165,7 @@ if noSea then
 	local uwRef = uDefs['coruwgeo']
 	uDefs['armuwgeo'][mwd] = uwRef[mwd]
 	for id, def in pairs(uDefs) do
-		if def[cps].metal_extractor or def[cps].geothermal then
+		if def[cps].metal_extractor then
 			def.maxwaterdepth = uwRef.maxwaterdepth
 		end
 		local min = def[mwd]
