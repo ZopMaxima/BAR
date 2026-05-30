@@ -10,6 +10,10 @@ local function round10(n)
 	return math.floor(n * 0.1) * 10
 end
 
+local function round100(n)
+	return math.floor(n * 0.01) * 100
+end
+
 local function addBO(conID, id)
 	local cDef = UnitDefs[conID]
 	local uDef = UnitDefs[id]
@@ -63,9 +67,9 @@ if tweakShieldTitan then
 	def.metalmake = 0
 	def.energymake = 0
 	def.energystorage = 0
-	def.metalcost = def.metalcost * 2
-	def.energycost = def.energycost * 3
-	def.buildtime = def.buildtime * 2.5
+	def.metalcost = def.metalcost * 1.4
+	def.energycost = def.energycost * 2.5
+	def.buildtime = def.buildtime * 1.95
 	def.radardistance = 0
 	def.sonardistance = 0
 	def.explodeas = 'mistexploxxl'
@@ -74,9 +78,9 @@ if tweakShieldTitan then
 	local shieldRad = def[cps]['shield_radius']
 	local wDefShield = def[wds]['repulsor']
 	wDefShield.shield.force = 5
-	wDefShield.shield.power = 10000
-	wDefShield.shield.powerregen = 350
-	wDefShield.shield.powerregenenergy = wDefShield.shield.powerregen * 10
+	wDefShield.shield.power = round100(def.health * 0.3335)
+	wDefShield.shield.powerregen = wDefShield.shield.power * 0.025
+	wDefShield.shield.powerregenenergy = wDefShield.shield.powerregen * 4
 	wDefShield.shield.intercepttype = 65535
 	--Arms
 	local wDefArms = def[wds]['armbantha_fire']
