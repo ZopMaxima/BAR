@@ -79,8 +79,8 @@ if tweakShieldTitan then
 	local wDefShield = def[wds]['repulsor']
 	wDefShield.shield.force = 5
 	wDefShield.shield.power = round100(def.health * 0.3335)
-	wDefShield.shield.powerregen = wDefShield.shield.power * 0.025
-	wDefShield.shield.powerregenenergy = wDefShield.shield.powerregen * 4
+	wDefShield.shield.powerregen = wDefShield.shield.power * 0.02
+	wDefShield.shield.powerregenenergy = wDefShield.shield.powerregen * 5
 	wDefShield.shield.intercepttype = 65535
 	--Arms
 	local wDefArms = def[wds]['armbantha_fire']
