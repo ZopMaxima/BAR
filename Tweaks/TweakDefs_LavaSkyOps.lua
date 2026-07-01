@@ -4,6 +4,7 @@ local uDefs = UnitDefs or {}
 local cps = 'customparams'
 local wds = 'weapondefs'
 local wpn = 'weapons'
+local allAir = {}
 
 local catAirATA = 'AIR_ATA'
 local catAirATS = 'AIR_ATS'
@@ -18,6 +19,14 @@ local tweakAirPrice = true
 local tweakAirTrans = true
 local tweakFlags = true
 local tweakScreamers = true
+
+--Assign
+for id, def in pairs(uDefs) do
+	local ca = def.cruisealtitude
+	if ca and ca < cruiseOrbit then
+		allAir[id] = def
+	end
+end
 
 local function round10(n)
 	return math.floor(n * 0.1) * 10
@@ -138,21 +147,22 @@ end
 
 --Torpedo buffs to fight T3.
 if tweakTorpedo then
-	local torpHPMul = 2
-	local torpDmgMul = 2
+	local hpMul = 2
+	local dmgMul = 2
 	for id, def in pairs(uDefs) do
-		local ca = def.cruisealtitude
-		if def.weapondefs and ((ca and ca < cruiseOrbit) or (not def.canmove)) then
-			local hasWW = false
-			for k, v in pairs(def.weapondefs) do
-				if v.waterweapon then
-					v.damage.default = v.damage.default * torpDmgMul
+		local hasWW = false
+		if def[wds] then
+			for _, w in pairs(def[wds]) do
+				if w.waterweapon then
+					for k, v in pairs(w.damage) do
+						w.damage[k] = math.floor(v * dmgMul)
+					end
 					hasWW = true
 				end
 			end
-			if hasWW then
-				def.health = def.health * torpHPMul
-			end
+		end
+		if hasWW and allAir[id] then
+			def.health = def.health * hpMul
 		end
 	end
 end
@@ -164,19 +174,19 @@ if tweakAirPrice then
 	local airECMul = 1
 	local airDrainMMul = 0.001
 	local airDrainEMul = 0.01
-	for id, def in pairs(uDefs) do
-		local ca = def.cruisealtitude
-		if ca and ca < cruiseOrbit then
-			if def.weapondefs then
-				local mcMul = math.max(1, math.min(airMCCutoff / def.metalcost, airMCMul))
-				def.buildtime = math.floor(def.buildtime * ((mcMul + airECMul) * 0.5))
-				def.metalcost = math.floor(def.metalcost * mcMul)
-				def.energycost = math.floor(def.energycost * airECMul)
+	for id, def in pairs(allAir) do
+		if next(def[wds] or {}) or next(def[wpn] or {}) then
+			local mcMul = math.max(1, math.min(airMCCutoff / def.metalcost, airMCMul))
+			if def.transportcapacity then
+				mcMul = 1 + ((mcMul - 1) * 0.5)
 			end
-			if not def.energymake then
-				def.onoffable = false
-				def.energyupkeep = math.min(def.metalcost * airDrainMMul, 1) * def.energycost * airDrainEMul
-			end
+			def.buildtime = math.floor(def.buildtime * ((mcMul + airECMul) * 0.5))
+			def.metalcost = math.floor(def.metalcost * mcMul)
+			def.energycost = math.floor(def.energycost * airECMul)
+		end
+		if not def.energymake then
+			def.onoffable = false
+			def.energyupkeep = math.min(def.metalcost * airDrainMMul, 1) * def.energycost * airDrainEMul
 		end
 	end
 	--Snowflake price includes Epic Dragon.
@@ -192,50 +202,42 @@ end
 
 --Transport paratrooper.
 if tweakAirTrans then
+	local mvc = 'movementclass'
+	local amph = { 'ATANK', 'ABOT', 'VBOT', 'COMM', 'EPIC' }
 	for id, def in pairs(uDefs) do
-		local ca = def.cruisealtitude
-		if ca and ca < cruiseOrbit then
-			local isATA = false
-			local isATS = false
-			if def.transportcapacity then
+		if def.cruisealtitude then
+			if allAir[id] and def.transportcapacity then
 				def.isfireplatform = true
-				isATS = true
-			end
-			if def[wpn] then
-				for i = 1, #def[wpn] do
-					local otc = def[wpn][i].onlytargetcategory
-					local ata = otc and otc == 'VTOL'
-					isATA = isATA or ata
-					isATS = isATS or ata == false
-				end
-			end
-			if isATS then
-				categorize(def, 'category', catAirATS)
-			elseif isATA then
-				categorize(def, 'category', catAirATA)
-			else
-				categorize(def, 'category', catAirUtil)
 			end
 		elseif def.canmove then
 			def[cps] = def[cps] or {}
 			def[cps].paratrooper = true
 			local fdm = 'fall_damage_multiplier'
 			if not def[cps][fdm] then
-				if def.movementclass and string.find(def.movementclass, 'HOVER') then
-					def[cps][fdm] = 0
+				if def[mvc] and string.find(def[mvc], 'HOVER') then
+					def[cps][fdm] = 0.125
 					def[cps]['water_'..fdm] = 0
-					if def.cantbetransported then
-						def.cantbetransported = false
-					end
+					def.cantbetransported = nil
 				else
-					def[cps][fdm] = 0.25
+					--See alldefs_post.lua
+					local mass = def.mass or math.max(def.metalcost or 1, ((def.health or 6) / 6))
+					if (def.metalcost or 1) < 751 and mass > 750 then
+						mass = 750
+					end
+					def[cps][fdm] = 0.125 + 0.125 * math.min(3, math.max(1, mass / 750)) --0.25 to 0.5
+					if def[mvc] then
+						for k, v in pairs(amph) do
+							if string.find(def[mvc], v) then
+								def[cps]['water_' .. fdm] = def[cps][fdm] * 0.25
+								break
+							end
+						end
+					end
 				end
 			end
 			if def[wds] then
 				for i = 1, #def[wds] do
-					if not def[wds][i][cps] then
-						def[wds][i][cps] = {}
-					end
+					def[wds][i][cps] = def[wds][i][cps] or {}
 					def[wds][i][cps].collidefirebase = false
 				end
 			end
@@ -271,30 +273,40 @@ if tweakFlags then
 	lDef.turnrate = lDef.turnrate * 1.125
 	lDef.radardistancejam = 600
 	--Arm
+	local aWID2 = aWID .. '2'
 	clear(aWDef)
 	mergeRec(aWDef, aAAWDef)
 	mergeWeapons(aDef, aWID, aAADef, aAAWID)
-	aWDef.reloadtime = aWDef.reloadtime * 1.5
+	aWDef.reloadtime = aWDef.reloadtime * 0.75
+	aWDef.damage.vtol = aWDef.damage.vtol * 0.5
+	aDef[wds][aWID2] = table.copy(aWDef)
+	aDef[wds][aWID2].proximitypriority = -1
+	aDef[wds][aWID].proximitypriority = 1
 	local i1 = indexOfWeapon(aDef, aWID, 1)
 	local i2 = indexOfWeapon(aDef, aWID, i1 + 1)
 	aDef[wpn][i1].maxangledif = nil
 	aDef[wpn][i2].maxangledif = nil
 	aDef[wpn][i1].maindir = nil
 	aDef[wpn][i2].maindir = nil
+	aDef[wpn][i2].def = aWID2
 	--Cor
-	local cwID2 = cWID..'2'
+	local cWID2 = cWID..'2'
 	clear(cWDef)
 	mergeRec(cWDef, cAAWDef)
 	mergeWeapons(cDef, cWID, cAADef, cAAWID)
+	cWDef.noExplode = true
+	cWDef.overpenetrate = true
+	cWDef.projectiles = 2
+	cWDef.sprayangle = 1080
 	cWDef.burstrate = 0.05
-	cWDef.burst = 4
+	cWDef.burst = 2
 	cWDef.reloadtime = cWDef.burstrate * cWDef.burst
 	cWDef.range = round10(cWDef.range * 1.25)
 	cWDef.proximitypriority = 1
 	cWDef[cps].noattackrangearc = nil
-	cWDef.damage.vtol = cWDef.damage.vtol * 0.5
-	cDef[wds][cwID2] = table.copy(cWDef)
-	cDef[wds][cwID2].proximitypriority = -1
+	cWDef.damage.vtol = math.floor(cWDef.damage.vtol * 0.15)
+	cDef[wds][cWID2] = table.copy(cWDef)
+	cDef[wds][cWID2].proximitypriority = -1
 	i1 = indexOfWeapon(cDef, cWID, 1)
 	i2 = indexOfWeapon(cDef, cWID, i1 + 1)
 	cDef[wpn][i1].fastautoretargeting = true
@@ -303,7 +315,7 @@ if tweakFlags then
 	cDef[wpn][i2].maxangledif = nil
 	cDef[wpn][i1].maindir = nil
 	cDef[wpn][i2].maindir = nil
-	cDef[wpn][i2].def = cwID2
+	cDef[wpn][i2].def = cWID2
 	--Leg
 	clear(lWDef)
 	mergeRec(lWDef, lAAWDef)
@@ -351,6 +363,25 @@ end
 
 --More reliable LRAA.
 if tweakScreamers then
+	for id, def in pairs(allAir) do
+		local isATA = false
+		local isATS = (def.transportcapacity or 0) > 0
+		if def[wpn] then
+			for i = 1, #def[wpn] do
+				local otc = def[wpn][i].onlytargetcategory
+				local ata = otc and otc == 'VTOL'
+				isATA = isATA or ata
+				isATS = isATS or ata == false
+			end
+		end
+		if isATS then
+			categorize(def, 'category', catAirATS)
+		elseif isATA then
+			categorize(def, 'category', catAirATA)
+		else
+			categorize(def, 'category', catAirUtil)
+		end
+	end
 	local wd = nil
 	wd = tweakLRAA('armmercury', 'arm_advsam')
 	if wd then
