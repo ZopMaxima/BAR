@@ -1,4 +1,4 @@
---Lava QoL Patch (Zop)
+--Lava QoL Patch 1.0 (Zop)
 --Quad Pharos pick by MGGW
 local mods = Spring.GetModOptions()
 local uDefs = UnitDefs or {}
@@ -14,7 +14,7 @@ local allBOs = {}
 local hasLegion = mods.experimentallegionfaction
 local hasScavs = mods.scavunitsforplayers
 local hasExtras = mods.experimentalextraunits
-local hasHoverTide = mods.map_lavatiderhythm == 'enabled' and mods.map_lavahighlevel <= 1 and mods.map_lavahighdwell <= 1
+local hasHoverTide = mods.map_lavatiderhythm == 'enabled' and mods.map_lavalowlevel == 0
 
 local noLRPC = mods.unit_restrictions_nolrpc
 local noLOLCannon = mods.unit_restrictions_noendgamelrpc
@@ -26,6 +26,7 @@ local noAir = mods.unit_restrictions_noair
 
 local removeExcess = true --Delete unpopular units to reduce constructor pages.
 
+local tweakPilum = true
 local tweakBehemoth = true
 local tweakReclaim = true
 local tweakWrecks = true
@@ -193,6 +194,15 @@ if noSea then
 	end
 end
 
+--Pilum Nerf
+if tweakPilum then
+	local d = uDefs['legbunk'][wds]['piledriver'].damage
+	if d then
+		d.default = d.default * 0.25
+		d.commanders = d.commanders * 0.25
+	end
+end
+
 --Behemoth Nerf
 if tweakBehemoth then
 	local mMul = 2
@@ -211,11 +221,11 @@ if tweakBehemoth then
 	def[cps].paralyzemultiplier = 2.5
 end
 
---Nerf nanos, use combat units.
+--Nano Nerf
 if tweakReclaim then
 	local ws = 'workertime'
 	local rs = 'reclaimspeed'
-	local sqrtThreshold = 22.5 -- Nerf above 506.25
+	local sqrtThreshold = 22.5 -- Above 506.25
 	for k, v in pairs(uDefs) do
 		local bp = v[ws] or v[rs]
 		if bp and v.canreclaim and not v.canmove then
