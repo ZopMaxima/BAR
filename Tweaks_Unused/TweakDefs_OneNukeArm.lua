@@ -45,7 +45,7 @@ for id, def in pairs(uDefs) do
 	if def[wds] then
 		for k, v in pairs(def[wds]) do
 			--No stockpile exploits.
-			if v[cps] and v[cps].nuclear and v.stockpile then
+			if v.targetable and v[cps] and v[cps].nuclear and v.stockpile then
 				v[cps].stockpilelimit = 1
 			end
 			--Reliable AN fire rate.
