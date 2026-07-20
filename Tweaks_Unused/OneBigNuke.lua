@@ -53,6 +53,7 @@ local tip = "Very expensive but it will do it's job with vigor'. Anti's for this
 
 if uDefs["armsilo"] then
 	local uDef = mergeToNew("armsilo", "armsiloexp", nukeSettings)
+	uDef.icontype = "armsilo"
 	local wDef = uDef[wds].nuclear_missile
 	wDef.targetable = nil
 	wDef.stockpiletime = 30
@@ -64,6 +65,7 @@ end
 
 if uDefs["corsilo"] then
 	local uDef = mergeToNew("corsilo", "corsiloexp", nukeSettings)
+	uDef.icontype = "corsilo"
 	local wDef = uDef[wds].crblmssl
 	wDef.targetable = nil
 	wDef.stockpiletime = 30
@@ -75,6 +77,7 @@ end
 
 if uDefs["legsilo"] then
 	local uDef = mergeToNew("legsilo", "legsiloexp", nukeSettings)
+	uDef.icontype = "legsilo"
 	local wDef = uDef[wds].legicbm
 	wDef.targetable = nil
 	wDef.stockpiletime = 30
