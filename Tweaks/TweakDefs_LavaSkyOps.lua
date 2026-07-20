@@ -1,4 +1,4 @@
---Lava Sky Ops (Zop)
+--Lava Sky Ops 1.0 (Zop)
 local mods = Spring.GetModOptions()
 local uDefs = UnitDefs or {}
 local cps = 'customparams'
@@ -304,7 +304,7 @@ if tweakFlags then
 	cWDef.range = round10(cWDef.range * 1.25)
 	cWDef.proximitypriority = 1
 	cWDef[cps].noattackrangearc = nil
-	cWDef.damage.vtol = math.floor(cWDef.damage.vtol * 0.15)
+	cWDef.damage.vtol = math.floor(cWDef.damage.vtol * 0.25)
 	cDef[wds][cWID2] = table.copy(cWDef)
 	cDef[wds][cWID2].proximitypriority = -1
 	i1 = indexOfWeapon(cDef, cWID, 1)
@@ -348,7 +348,7 @@ local function tweakLRAA(uID, wID)
 		def.airsightdistance = def.sightdistance * 1.5
 		wDef = def[wds][wID]
 		if wDef then
-			wDef.damage.vtol = wDef.damage.vtol * 2
+			wDef.damage.vtol = wDef.damage.vtol * 1.5
 			wDef.edgeeffectiveness = 0
 			wDef.areaofeffect = wDef.areaofeffect * 0.5
 			local i = indexOfWeapon(def, wID, 1)
