@@ -277,7 +277,8 @@ if tweakFlags then
 	clear(aWDef)
 	mergeRec(aWDef, aAAWDef)
 	mergeWeapons(aDef, aWID, aAADef, aAAWID)
-	aWDef.reloadtime = aWDef.reloadtime * 0.75
+	aWDef.reloadtime = aWDef.reloadtime * 0.5
+	aWDef.range = round10(aWDef.range * 1.1)
 	aWDef.damage.vtol = aWDef.damage.vtol * 0.5
 	aDef[wds][aWID2] = table.copy(aWDef)
 	aDef[wds][aWID2].proximitypriority = -1
@@ -298,13 +299,14 @@ if tweakFlags then
 	cWDef.overpenetrate = true
 	cWDef.projectiles = 2
 	cWDef.sprayangle = 1080
+	cWDef.ownerExpAccWeight = nil
 	cWDef.burstrate = 0.05
 	cWDef.burst = 2
 	cWDef.reloadtime = cWDef.burstrate * cWDef.burst
 	cWDef.range = round10(cWDef.range * 1.25)
 	cWDef.proximitypriority = 1
 	cWDef[cps].noattackrangearc = nil
-	cWDef.damage.vtol = math.floor(cWDef.damage.vtol * 0.25)
+	cWDef.damage.vtol = math.floor(cWDef.damage.vtol * 0.2)
 	cDef[wds][cWID2] = table.copy(cWDef)
 	cDef[wds][cWID2].proximitypriority = -1
 	i1 = indexOfWeapon(cDef, cWID, 1)
@@ -338,6 +340,7 @@ if tweakFlags then
 	lWDef.startsound = 'packolau'
 	lWDef.explosiongenerator = 'custom:genericshellexplosion-medium-aa'
 	lWDef.areaofeffect = lWDef.areaofeffect * 0.2
+	lWDef.damage.vtol = math.floor(lWDef.damage.vtol * 2)
 end
 
 --Redistribute AoE, prefer ATS targets.
