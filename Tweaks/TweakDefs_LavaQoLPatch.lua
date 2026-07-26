@@ -1,4 +1,4 @@
---Lava QoL Patch 1.0 (Zop)
+--Lava QoL Patch 1.1 (Zop)
 --Quad Pharos pick by MGGW
 local mods = Spring.GetModOptions()
 local uDefs = UnitDefs or {}
@@ -34,6 +34,7 @@ local tweakMini = true
 local tweakQuadLT = true
 local tweakLegEpic = true
 local tweakEcoT3 = true
+local tweakBBT = true
 
 --Assign
 for id, def in pairs(uDefs) do
@@ -48,6 +49,12 @@ end
 
 local function round100(n)
 	return math.floor(n * 0.01) * 100
+end
+
+local function mulAll(map, mul)
+	for k, v in pairs(map) do
+		map[k] = math.floor(v * mul)
+	end
 end
 
 local function addBO(conID, id)
@@ -196,11 +203,7 @@ end
 
 --Pilum Nerf
 if tweakPilum then
-	local d = uDefs['legbunk'][wds]['piledriver'].damage
-	if d then
-		d.default = d.default * 0.25
-		d.commanders = d.commanders * 0.25
-	end
+	mulAll(uDefs['legbunk'][wds]['piledriver'].damage, 0.25)
 end
 
 --Behemoth Nerf
@@ -291,12 +294,8 @@ if hasScavs and tweakMini and hasLegion then
 	aWDef.range = round10(aWDef.range * rangeMul)
 	cWDef.range = round10(cWDef.range * rangeMul)
 	lWDef.range = round10(lWDef.range * rangeMul)
-	for k, v in pairs(aWDef.damage) do
-		aWDef.damage[k] = v * 2
-	end
-	for k, v in pairs(cWDef.damage) do
-		cWDef.damage[k] = math.floor(v * 2 * (aWDef.range / cWDef.range))
-	end
+	mulAll(aWDef.damage, 2)
+	mulAll(cWDef.damage, 2 * (aWDef.range / cWDef.range))
 	local sfd = uDefs['legstarfall'][wds]['starfire'].damage
 	lWDef.damage.shields = math.floor(lWDef.damage.default * (sfd.shields / sfd.default))
 end
@@ -315,28 +314,23 @@ if hasScavs and tweakQuadLT and hasLegion then
 		local aWDef = aDef[wds]['hllt_'..i]
 		local cWDef = cDef[wds]['hllt_'..i]
 		local lWDef = lDef[wds]['hllt_'..i]
+		mulAll(cWDef.damage, 0.675)
 		local dps = cWDef.damage.default / cWDef.reloadtime
-		local wr = cWDef.range + 100
+		local wr = cWDef.range + 50
 		--Arm
 		mergeRec(aWDef, uDefs['armbeamer'][wds]['armbeamer_weapon'])
 		aWDef.range = wr - 35
 		aWDef.reloadtime = aWDef.reloadtime + 0.075
 		aWDef.beamtime = aWDef.reloadtime
 		aWDef.thickness = aWDef.thickness - ((i - 1) * 0.5)
-		local aMul = dps / (aWDef.damage.default / aWDef.reloadtime)
-		for k, v in pairs(aWDef.damage) do
-			aWDef.damage[k] = math.floor(v * aMul)
-		end
+		mulAll(aWDef.damage, dps / (aWDef.damage.default / aWDef.reloadtime))
 		aDef[wpn][i].fastautoretargeting = true
 		--Cor
 		cWDef.range = wr
 		--Leg
 		mergeRec(lWDef, uDefs['leglht'][wds]['heat_ray'])
 		lWDef.range = wr - 15
-		local lMul = dps / (lWDef.damage.default / lWDef.reloadtime)
-		for k, v in pairs(lWDef.damage) do
-			lWDef.damage[k] = math.floor(v * lMul)
-		end
+		mulAll(lWDef.damage, dps / (lWDef.damage.default / lWDef.reloadtime))
 		--Scatter Targets
 		local btc = 'badtargetcategory'
 		if i == 1 or i == 2 then
@@ -408,7 +402,7 @@ end
 local function mulAfus(t2, t3, hpMul, scale)
 	if t2 and t3 then
 		t3.health = t2.health * hpMul
-		t3.buildtime = t2.buildtime * scale
+		t3.buildtime = t2.buildtime * scale * 0.75
 		t3.metalcost = t2.metalcost * scale
 		t3.energycost = t2.energycost * scale
 		t3.energymake = t2.energymake * scale
@@ -416,14 +410,15 @@ local function mulAfus(t2, t3, hpMul, scale)
 	end
 end
 
+--Smaller converters.
 local function mulConv(def)
+	local x = 6
+	local yard = 'oooooo oooooo oooooo oooooo oooooo oooooo'
+	local cvo = 'collisionvolumeoffsets'
+	local cvs = 'collisionvolumescales'
 	if def then
-		local x = 6
-		local yard = 'oooooo oooooo oooooo oooooo oooooo oooooo'
 		local foot = def.footprintx
 		if foot > x then
-			local cvo = 'collisionvolumeoffsets'
-			local cvs = 'collisionvolumescales'
 			if def[cvo] then
 				def[cvo] = '0 0 0'
 			end
@@ -468,8 +463,20 @@ if tweakEcoT3 then
 	if hasLegion then
 		setDesc(lT3Def, nil, 'Produces '..lT3Def.energymake..' Energy (Hazardous)')
 	end
-	--Smaller converters.
 	mulConv(uDefs['armmmkrt3'])
 	mulConv(uDefs['cormmkrt3'])
 	mulConv(uDefs['legadveconvt3'])
+end
+
+--Base Comm
+if tweakBBT then
+	local bbtIDs = { 'armrespawn', 'correspawn', 'legnanotcbase' }
+	for i = 1, #bbtIDs do
+		local def = uDefs[bbtIDs[i]]
+		if def then
+			def[cps] = def[cps] or {}
+			def[cps].isscavcommander = true
+			def[cps].armordef = 'commanders'
+		end
+	end
 end
