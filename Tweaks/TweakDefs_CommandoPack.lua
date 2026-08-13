@@ -1,4 +1,4 @@
---Commando Pack (Zop)
+--Commando Pack 1.1 (Zop)
 --Unit names must contain 'cormando' for unit_commando_watch.lua.
 local uDefs = UnitDefs or {}
 local cps = 'customparams'
@@ -10,6 +10,8 @@ local tweakArm = true
 local tweakCor = true
 local tweakLeg = true
 local tweakT4 = true
+
+local catJunoTarget = 'JUNOTARGET'
 
 local function round10(n)
 	return math.floor(n * 0.1) * 10
@@ -61,6 +63,21 @@ local function setDesc(def, name, tip)
 	end
 end
 
+local function categorize(def, key, cat)
+	if def then
+		if def[key] then
+			def[key] = def[key]..' '..cat
+		else
+			def[key] = cat
+		end
+	end
+end
+
+local function hasCategory(def, cat)
+	local s = def and def.category
+	return s and string.find(' '..s..' ', ' '..cat..' ', 1, true) ~= nil
+end
+
 local function declutter(def, sight)
 	if def then
 		def.builddistance = 200
@@ -73,7 +90,7 @@ local function declutter(def, sight)
 end
 
 local function cloak(def, rank)
-	local range = { 60, 75, 90, 100 }
+	local range = { 65, 75, 90, 100 }
 	local drain = { 50, 100, 200, 300 }
 	rank = math.max(1, math.min(rank, #range))
 	if def then
@@ -140,6 +157,14 @@ if tweakCor and tweakT4 and uDefs[corT4ID] then
 	def.selfdestructas = 'largeExplosionGenericSelfd'
 end
 
+local function overpen(w)
+	w.impactonly = true
+	w.noExplode = true
+	w[cps] = w[cps] or {}
+	w[cps].overpenetrate = true
+	w[cps].overpenetrate_falloff = false
+end
+
 --Arm (legcomt2off)
 if tweakArm and uDefs[corID] then
 	local newID = 'acormando'
@@ -181,9 +206,7 @@ if tweakArm and uDefs[corID] then
 	wDefL.burstrate = 0.066
 	wDefL.reloadtime = wDefL.burst * wDefL.burstrate
 	wDefL.weaponvelocity = wDefL.weaponvelocity * 1.5
-	wDefL.overpenetrate = true
-	wDefL.impactonly = nil
-	wDefL[cps] = wDefL[cps] or {}
+	overpen(wDefL)
 	wDefL[cps].weapons_group = 1
 	--Right
 	def[wds].janus_rocket = table.copy(uDefs['armjanus'][wds]['janus_rocket'])
@@ -240,12 +263,10 @@ if tweakArm and tweakT4 and uDefs[corT4ID] then
 	mergeRec(wDefL, uDefs['acormando'][wds]['commando_blaster'])
 	wDefL.name = 'Dual Rapid-Fire Machine Gun'
 	wDefL.range = 420
-	wDefL.burstrate = wDefL.burstrate * 0.5
-	wDefL.reloadtime = wDefL.reloadtime * 0.25
+	wDefL.reloadtime = wDefL.reloadtime * 0.5
 	wDefL.thickness = wDefL.thickness * 1.25
-	wDefL.overpenetrate = true
-	wDefL.impactonly = nil
-	mulDamage(wDefL, 1.5)
+	overpen(wDefL)
+	mulDamage(wDefL, 3)
 	--Shoulder
 	def[wds].armpb_weapon = table.copy(uDefs['armpb'][wds]['armpb_weapon'])
 	local wDefS = def[wds]['armpb_weapon']
@@ -267,6 +288,35 @@ if tweakArm and tweakT4 and uDefs[corT4ID] then
 	addBO('armshltxuw', newID)
 end
 
+local function legDgun(w, range, energy, impulse)
+	w.range = range
+	w.commandfire = true
+	w.stockpile = true
+	w.energypershot = energy
+	w.stockpiletime = 10
+	w.reloadtime = 1
+	w.waterweapon = true
+	w.impulsefactor = impulse
+	w.areaofeffect = 100
+	w.craterareaofeffect = 100
+	w.craterboost = 1
+	w.cratermult = 1
+	w.explosiongenerator = 'custom:starfire-explosion'
+	w.avoidfeature = false
+	w.avoidfriendly = false
+	w.collideenemy = true
+	w.collidefriendly = true
+	w.collidefeature = true
+	w.noselfdamage = false
+	w[cps] = w[cps] or {}
+	w[cps].stockpilelimit = 1
+	w[cps].weapons_group = 1
+	w[cps].place_target_on_ground = 'true'
+	clear(w.damage)
+	w.damage.default = math.floor(energy / 100)
+	w.damage.shields = energy * 2
+end
+
 --Leg (legcomlvl2)
 if tweakLeg and uDefs[corID] then
 	local newID = 'lcormando'
@@ -285,12 +335,12 @@ if tweakLeg and uDefs[corID] then
 		'leglts',
 		'legscout',
 	}
-	def.health = def.health * 0.5
+	def.health = def.health * 0.75
 	def.speed = 50
 	def.istargetingupgrade = true
-	declutter(def, 250)
+	declutter(def, 200)
 	cloak(def, 1)
-	mulPrice(def, 0.5, 3)
+	mulPrice(def, 0.75, 3)
 	corpse(def, 'legcomlvl2')
 	def.radardistance = 1250
 	def.canmanualfire = true
@@ -318,33 +368,8 @@ if tweakLeg and uDefs[corID] then
 	def[wds]['corlevlr_weapon'] = table.copy(uDefs['legdtr'][wds]['corlevlr_weapon'])
 	local wDefR = def[wds]['corlevlr_weapon']
 	wDefR.name = 'Shieldbreaker Grenade'
-	wDefR.range = wDefL.range
-	wDefR.commandfire = true
-	wDefR.stockpile = true
-	wDefR.energypershot = 5000
-	wDefR.stockpiletime = 10
-	wDefR.reloadtime = 1
-	wDefR.waterweapon = true
-	wDefR.impulsefactor = 100
-	wDefR.areaofeffect = 100
-	wDefR.craterareaofeffect = 100
-	wDefR.craterboost = 1
-	wDefR.cratermult = 1
 	wDefR.rgbcolor = '1 1 1'
-	wDefR.explosiongenerator = 'custom:starfire-explosion'
-	wDefR.avoidfeature = false
-	wDefR.avoidfriendly = false
-	wDefR.collideenemy = true
-	wDefR.collidefriendly = true
-	wDefR.collidefeature = true
-	wDefR.noselfdamage = false
-	wDefR[cps] = wDefR[cps] or {}
-	wDefR[cps].stockpilelimit = 1
-	wDefR[cps].weapons_group = 1
-	wDefR[cps].place_target_on_ground = 'true'
-	clear(wDefR.damage)
-	wDefR.damage.default = 50
-	wDefR.damage.shields = 10000
+	legDgun(wDefR, wDefL.range, 5000, 100)
 	def[wpn][3] = table.copy(uDefs['legdtr'][wpn][1])
 	--Lab
 	addBO('legalab', newID)
@@ -373,11 +398,11 @@ if tweakLeg and tweakT4 and uDefs[corT4ID] then
 		'legaspy',
 		'legdecom',
 	}
-	def.health = def.health * 0.5
+	def.health = def.health * 0.75
 	def.speed = 55
-	declutter(def, 300)
+	declutter(def, 200)
 	cloak(def, 2)
-	mulPrice(def, 0.5, 3)
+	mulPrice(def, 0.75, 3)
 	corpse(def, 'legcomlvl10')
 	def.radardistance = 1800
 	def.canmanualfire = true
@@ -390,65 +415,56 @@ if tweakLeg and tweakT4 and uDefs[corT4ID] then
 	wDefL.range = 300
 	wDefL.burst = 3
 	wDefL.burstrate = wDefL.burstrate * 3
-	wDefL.reloadtime = wDefL.burst * wDefL.burstrate
+	wDefL.reloadtime = wDefL.burst * wDefL.burstrate * 2
 	wDefL.thickness = wDefL.thickness * 2
 	wDefL.explosiongenerator = 'custom:genericshellexplosion-small-air'
+	mulDamage(wDefL, 3)
 	wDefL[cps].area_onhit_damage = 75
 	--Right
 	local wDefR = def[wds]['commando_back_cannon']
 	clear(wDefR)
 	mergeRec(wDefR, uDefs[corT4ID][wds]['commando_stunner'])
 	wDefR.name = 'Shieldbreaker Burst'
-	wDefR.range = wDefL.range
-	wDefR.commandfire = true
-	wDefR.stockpile = true
-	wDefR.energypershot = 25000
-	wDefR.stockpiletime = 10
-	wDefR.reloadtime = 1
+	legDgun(wDefR, wDefL.range, 25000, 50)
 	wDefR.projectiles = nil
-	wDefR.waterweapon = true
-	wDefR.impulsefactor = 50
 	wDefR.paralyzer = nil
 	wDefR.paralyzetime = nil
 	wDefR.sprayangle = nil
 	wDefR.beamttl = 0.4
-	wDefR.areaofeffect = 100
-	wDefR.craterareaofeffect = 100
-	wDefR.craterboost = 1
-	wDefR.cratermult = 1
-	wDefR.explosiongenerator = 'custom:starfire-explosion'
-	wDefR.avoidfeature = false
-	wDefR.avoidfriendly = false
-	wDefR.collideenemy = true
-	wDefR.collidefriendly = true
-	wDefR.collidefeature = true
-	wDefR.noselfdamage = false
-	wDefR[cps] = wDefR[cps] or {}
-	wDefR[cps].stockpilelimit = 1
-	wDefR[cps].weapons_group = 1
-	wDefR[cps].place_target_on_ground = 'true'
-	clear(wDefR.damage)
-	wDefR.damage.default = 250
-	wDefR.damage.shields = 50000
 	--Shoulder
 	def[wds]['emp'] = table.copy(uDefs['armthor'][wds]['emp'])
 	local wDefS = def[wds]['emp']
+	wDefS.name = 'Juno Beam'
 	wDefS.range = wDefL.range
 	wDefS.thickness = wDefL.thickness * 0.25
+	wDefS.reloadtime = wDefS.reloadtime * 0.5
+	wDefS.beamtime = wDefS.beamtime * 0.5
 	wDefS[cps].weapons_group = 1
 	wDefS[cps].soundstart_volume_multiplier = 0.5
-	mulDamage(wDefS, 2)
+	mulDamage(wDefS, 0.25)
+	wDefS.paralyzer = nil
+	wDefS.paralyzetime = nil
 	wDefS.proximitypriority = 1
 	wDefS.soundstart = 'beamershot2'
+	wDefS.rgbcolor = '0.75 1.0 0.4'
 	def[wpn][1].onlytargetcategory = 'NOTAIR'
+	def[wpn][1].badtargetcategory = catJunoTarget
 	def[wpn][2].onlytargetcategory = 'NOTAIR'
 	def[wpn][4] = {
 		def = 'EMP',
 		fastautoretargeting = true,
-		onlytargetcategory = 'EMPABLE',
-		badtargetgategory = 'VTOL NOTWEAPON',
+		onlytargetcategory = catJunoTarget,
+		badtargetcategory = 'VTOL WEAPON',
 	}
 	--Lab
 	addBO('leggant', newID)
 	addBO('leggantuw', newID)
+end
+
+--Juno targets.
+for _, def in pairs(uDefs) do
+	local isRadJam = (not def[wds] or not next(def[wds])) and not def.builder and ((def.radardistance or 0) > 0 or (def.radardistancejam or 0) > 0)
+	if hasCategory(def, 'GROUNDSCOUT') or hasCategory(def, 'LIGHTAIRSCOUT') or isRadJam then
+		categorize(def, 'category', catJunoTarget)
+	end
 end
