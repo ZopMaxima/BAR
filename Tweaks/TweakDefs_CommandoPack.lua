@@ -356,12 +356,12 @@ if tweakLeg and uDefs[corID] then
 	wDefL.damage.default = 4
 	wDefL.damage.vtol = 2
 	wDefL.customparams = {
-		area_onhit_ceg = 'fire-area-37-repeat',
+		area_onhit_ceg = 'treeburn-tiny',
 		area_onhit_damageCeg = 'burnflame-xs',
 		area_onhit_resistance = 'fire',
 		area_onhit_damage = 15,
-		area_onhit_range = 37.5,
-		area_onhit_time = 3,
+		area_onhit_range = 25,
+		area_onhit_time = 2,
 		water_splash = 0,
 	}
 	--Right
@@ -420,12 +420,14 @@ if tweakLeg and tweakT4 and uDefs[corT4ID] then
 	wDefL.explosiongenerator = 'custom:genericshellexplosion-small-air'
 	mulDamage(wDefL, 3)
 	wDefL[cps].area_onhit_damage = 75
+	wDefL.canattackground = true
 	--Right
 	local wDefR = def[wds]['commando_back_cannon']
 	clear(wDefR)
 	mergeRec(wDefR, uDefs[corT4ID][wds]['commando_stunner'])
 	wDefR.name = 'Shieldbreaker Burst'
 	legDgun(wDefR, wDefL.range, 25000, 50)
+	wDefR[cps].place_target_on_ground = nil
 	wDefR.projectiles = nil
 	wDefR.paralyzer = nil
 	wDefR.paralyzetime = nil
@@ -439,6 +441,7 @@ if tweakLeg and tweakT4 and uDefs[corT4ID] then
 	wDefS.thickness = wDefL.thickness * 0.25
 	wDefS.reloadtime = wDefS.reloadtime * 0.5
 	wDefS.beamtime = wDefS.beamtime * 0.5
+	wDefS.canattackground = false
 	wDefS[cps].weapons_group = 1
 	wDefS[cps].soundstart_volume_multiplier = 0.5
 	mulDamage(wDefS, 0.25)
