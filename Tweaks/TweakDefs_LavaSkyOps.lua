@@ -1,4 +1,4 @@
---Lava Sky Ops 1.0 (Zop)
+--Lava Sky Ops 1.2 (Zop)
 local mods = Spring.GetModOptions()
 local uDefs = UnitDefs or {}
 local cps = 'customparams'
@@ -278,8 +278,7 @@ if tweakFlags then
 	mergeRec(aWDef, aAAWDef)
 	mergeWeapons(aDef, aWID, aAADef, aAAWID)
 	aWDef.reloadtime = aWDef.reloadtime * 0.5
-	aWDef.range = round10(aWDef.range * 1.1)
-	aWDef.damage.vtol = aWDef.damage.vtol * 0.5
+	aWDef.damage.vtol = aWDef.damage.vtol * 0.375
 	aDef[wds][aWID2] = table.copy(aWDef)
 	aDef[wds][aWID2].proximitypriority = -1
 	aDef[wds][aWID].proximitypriority = 1
@@ -296,17 +295,17 @@ if tweakFlags then
 	mergeRec(cWDef, cAAWDef)
 	mergeWeapons(cDef, cWID, cAADef, cAAWID)
 	cWDef.noExplode = true
-	cWDef.overpenetrate = true
+	cWDef[cps].overpenetrate = true
 	cWDef.projectiles = 2
 	cWDef.sprayangle = 1080
-	cWDef.ownerExpAccWeight = nil
+	cWDef.ownerExpAccWeight = 0
 	cWDef.burstrate = 0.05
 	cWDef.burst = 2
 	cWDef.reloadtime = cWDef.burstrate * cWDef.burst
-	cWDef.range = round10(cWDef.range * 1.25)
+	cWDef.range = round10(cWDef.range * 1.1)
 	cWDef.proximitypriority = 1
 	cWDef[cps].noattackrangearc = nil
-	cWDef.damage.vtol = math.floor(cWDef.damage.vtol * 0.2)
+	cWDef.damage.vtol = math.floor(cWDef.damage.vtol * 0.15)
 	cDef[wds][cWID2] = table.copy(cWDef)
 	cDef[wds][cWID2].proximitypriority = -1
 	i1 = indexOfWeapon(cDef, cWID, 1)
@@ -340,7 +339,7 @@ if tweakFlags then
 	lWDef.startsound = 'packolau'
 	lWDef.explosiongenerator = 'custom:genericshellexplosion-medium-aa'
 	lWDef.areaofeffect = lWDef.areaofeffect * 0.2
-	lWDef.damage.vtol = math.floor(lWDef.damage.vtol * 2)
+	lWDef.damage.vtol = math.floor(lWDef.damage.vtol * 1.5)
 end
 
 --Redistribute AoE, prefer ATS targets.
@@ -398,6 +397,7 @@ if tweakScreamers then
 	if wd then
 		wd.cegtag = nil
 		wd.noExplode = true
-		wd.overpenetrate = true
+		wd[cps].overpenetrate = true
+		wd[cps].overpenetrate_falloff = true
 	end
 end
