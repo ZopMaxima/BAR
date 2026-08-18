@@ -351,6 +351,7 @@ if tweakLeg and uDefs[corID] then
 	mergeRec(wDefL, uDefs['legmg'][wds]['armmg_weapon'])
 	wDefL.name = 'Incendiary Machine Gun'
 	wDefL.range = 300
+	wDefL.accuracy = wDefL.accuracy * 1.5
 	wDefL.explosiongenerator = 'custom:genericshellexplosion-tiny-aa'
 	clear(wDefL.damage)
 	wDefL.damage.default = 4
@@ -413,14 +414,24 @@ if tweakLeg and tweakT4 and uDefs[corT4ID] then
 	mergeRec(wDefL, uDefs['lcormando'][wds]['commando_blaster'])
 	wDefL.name = 'Heavy Incendiary Autocannon'
 	wDefL.range = 300
-	wDefL.burst = 3
-	wDefL.burstrate = wDefL.burstrate * 3
+	wDefL.burst = 6
+	wDefL.burstrate = wDefL.burstrate * 1.5
 	wDefL.reloadtime = wDefL.burst * wDefL.burstrate * 2
 	wDefL.thickness = wDefL.thickness * 2
-	wDefL.explosiongenerator = 'custom:genericshellexplosion-small-air'
-	mulDamage(wDefL, 3)
-	wDefL[cps].area_onhit_damage = 75
+	mulDamage(wDefL, 4)
+	wDefL[cps].area_onhit_damage = 125
 	wDefL.canattackground = true
+	wDefL.weapontype = 'BeamLaser'
+	wDefL.beamburst = true
+	wDefL.beamtime = 0.05
+	wDefL.beamttl = 1
+	wDefL.rgbcolor = '0.75 0 0'
+	wDefL.rgbcolor2 = '0.9 0.9 0.6'
+	wDefL.soundstart = 'lasfirerc'
+	wDefL.soundhitdry = ''
+	wDefL.soundhitwet = 'sizzle'
+	wDefL.soundtrigger = 1
+	wDefL.explosiongenerator = 'custom:genericshellexplosion-small-air'
 	--Right
 	local wDefR = def[wds]['commando_back_cannon']
 	clear(wDefR)
