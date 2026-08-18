@@ -1,4 +1,4 @@
---Lava QoL Patch 1.1 (Zop)
+--Lava QoL Patch 1.2 (Zop)
 --Quad Pharos pick by MGGW
 local mods = Spring.GetModOptions()
 local uDefs = UnitDefs or {}
@@ -6,9 +6,9 @@ local cps = 'customparams'
 local fds = 'featuredefs'
 local wds = 'weapondefs'
 local wpn = 'weapons'
-local aACons = {'armaca','armack','armacv','armacsub','armoc'} --oc Orbital Constructor from Space Mod
-local cACons = {'coraca','corack','coracv','coracsub','coroc'}
-local lACons = {'legaca','legack','legacv','legoc'}
+local aACons = { 'armaca', 'armack', 'armacv', 'armacsub', 'armoc' } --oc Orbital Constructor from Space Mod
+local cACons = { 'coraca', 'corack', 'coracv', 'coracsub', 'coroc' }
+local lACons = { 'legaca', 'legack', 'legacv', 'legoc' }
 local allBOs = {}
 
 local hasLegion = mods.experimentallegionfaction
@@ -29,12 +29,13 @@ local removeExcess = true --Delete unpopular units to reduce constructor pages.
 local tweakPilum = true
 local tweakBehemoth = true
 local tweakReclaim = true
+local tweakPulsar = true
 local tweakWrecks = true
 local tweakMini = true
 local tweakQuadLT = true
 local tweakLegEpic = true
-local tweakEcoT3 = true
 local tweakBBT = true
+local tweakTacs = true
 
 --Assign
 for id, def in pairs(uDefs) do
@@ -106,14 +107,14 @@ local function mergeRec(def, ref)
 end
 
 local function setDesc(def, name, tip)
-	local latin = {'en','fr','de','es'}
+	local latin = { 'en', 'fr', 'de', 'es' }
 	if def then
 		for i = 1, #latin do
 			if name then
-				def[cps]['i18n_'..latin[i]..'_humanname'] = name
+				def[cps]['i18n_' .. latin[i] .. '_humanname'] = name
 			end
 			if tip then
-				def[cps]['i18n_'..latin[i]..'_tooltip'] = tip
+				def[cps]['i18n_' .. latin[i] .. '_tooltip'] = tip
 			end
 		end
 	end
@@ -203,7 +204,9 @@ end
 
 --Pilum Nerf
 if tweakPilum then
-	mulAll(uDefs['legbunk'][wds]['piledriver'].damage, 0.25)
+	local wDef = uDefs['legbunk'][wds]['piledriver']
+	wDef.areaofeffect = wDef.areaofeffect * 0.25
+	mulAll(wDef.damage, 0.25)
 end
 
 --Behemoth Nerf
@@ -234,6 +237,15 @@ if tweakReclaim then
 		if bp and v.canreclaim and not v.canmove then
 			v[rs] = math.min(bp, round10(math.sqrt(bp * mods.multiplier_buildpower) * sqrtThreshold))
 		end
+	end
+end
+
+--Pulsar vs Pulsar
+if tweakPulsar then
+	local def = uDefs['armannit3']
+	if def then
+		def[cps].unitmidpos = '0 66 0'
+		def[cps].unitaimpos = '0 58 0'
 	end
 end
 
@@ -296,8 +308,6 @@ if hasScavs and tweakMini and hasLegion then
 	lWDef.range = round10(lWDef.range * rangeMul)
 	mulAll(aWDef.damage, 2)
 	mulAll(cWDef.damage, 2 * (aWDef.range / cWDef.range))
-	local sfd = uDefs['legstarfall'][wds]['starfire'].damage
-	lWDef.damage.shields = math.floor(lWDef.damage.default * (sfd.shields / sfd.default))
 end
 
 --Quad towers.
@@ -311,9 +321,9 @@ if hasScavs and tweakQuadLT and hasLegion then
 	uDefs[lLT] = table.copy(cDef)
 	local lDef = uDefs[lLT]
 	for i = 1, 4 do
-		local aWDef = aDef[wds]['hllt_'..i]
-		local cWDef = cDef[wds]['hllt_'..i]
-		local lWDef = lDef[wds]['hllt_'..i]
+		local aWDef = aDef[wds]['hllt_' .. i]
+		local cWDef = cDef[wds]['hllt_' .. i]
+		local lWDef = lDef[wds]['hllt_' .. i]
 		mulAll(cWDef.damage, 0.675)
 		local dps = cWDef.damage.default / cWDef.reloadtime
 		local wr = cWDef.range + 50
@@ -357,8 +367,8 @@ end
 if hasScavs then
 	local cT4 = 'cordoomt3'
 	local lT4 = 'legdoomt3'
-	local cEvos = {'corcomlvl8', 'corcomlvl9', 'corcomlvl10'}
-	local lEvos = {'legcomlvl8', 'legcomlvl9', 'legcomlvl10'}
+	local cEvos = { 'corcomlvl8', 'corcomlvl9', 'corcomlvl10' }
+	local lEvos = { 'legcomlvl8', 'legcomlvl9', 'legcomlvl10' }
 	if tweakLegEpic and hasLegion then
 		uDefs[lT4] = table.copy(uDefs[cT4])
 		local def = uDefs[lT4]
@@ -399,76 +409,7 @@ if hasScavs then
 	addBOArr(cEvos, cT4)
 end
 
-local function mulAfus(t2, t3, hpMul, scale)
-	if t2 and t3 then
-		t3.health = t2.health * hpMul
-		t3.buildtime = t2.buildtime * scale * 0.75
-		t3.metalcost = t2.metalcost * scale
-		t3.energycost = t2.energycost * scale
-		t3.energymake = t2.energymake * scale
-		t3.explodeas = 'advancedFusionExplosionSelfd'
-	end
-end
-
---Smaller converters.
-local function mulConv(def)
-	local x = 6
-	local yard = 'oooooo oooooo oooooo oooooo oooooo oooooo'
-	local cvo = 'collisionvolumeoffsets'
-	local cvs = 'collisionvolumescales'
-	if def then
-		local foot = def.footprintx
-		if foot > x then
-			if def[cvo] then
-				def[cvo] = '0 0 0'
-			end
-			if def[cvs] then
-				def[cvs] = '90 45 90'
-			end
-			def.footprintx = x
-			def.footprintz = x
-			def.yardmap = yard
-			if def[fds] then
-				local d = def[fds].dead
-				if d then
-					d[cvo] = '0 0 0'
-					d[cvs] = '90 45 90'
-					d.footprintx = x
-					d.footprintz = x
-				end
-				local h = def[fds].heap
-				if h then
-					h.footprintx = x
-					h.footprintz = x
-				end
-			end
-		end
-	end
-end
-
---Afus faction attributes.
-if tweakEcoT3 then
-	local hpMul = 1.5
-	local scale = 10
-	local aT3Def = uDefs['armafust3']
-	local cT3Def = uDefs['corafust3']
-	local lT3Def = uDefs['legafust3']
-	mulAfus(uDefs['armafus'], aT3Def, hpMul, scale)
-	mulAfus(uDefs['corafus'], cT3Def, hpMul, scale)
-	mulAfus(uDefs['legafus'], lT3Def, hpMul, scale)
-	--Arm
-	aT3Def.energystorage = aT3Def.energystorage * hpMul
-	aT3Def.stealth = true
-	--Leg
-	if hasLegion then
-		setDesc(lT3Def, nil, 'Produces '..lT3Def.energymake..' Energy (Hazardous)')
-	end
-	mulConv(uDefs['armmmkrt3'])
-	mulConv(uDefs['cormmkrt3'])
-	mulConv(uDefs['legadveconvt3'])
-end
-
---Base Comm
+--Base Commander
 if tweakBBT then
 	local bbtIDs = { 'armrespawn', 'correspawn', 'legnanotcbase' }
 	for i = 1, #bbtIDs do
@@ -479,4 +420,20 @@ if tweakBBT then
 			def[cps].armordef = 'commanders'
 		end
 	end
+end
+
+--Catch up to EMP.
+if tweakTacs then
+	local t = 'stockpiletime'
+	local cWDef = uDefs['cortron'][wds]['cortron_weapon']
+	cWDef.damage.shields = math.floor(cWDef.damage.default * 2.5)
+	local lWDef = uDefs['legperdition'][wds]['napalmmissile']
+	lWDef.damage.shields = math.floor(lWDef.damage.default * 7.5)
+	lWDef[cps].shield_aoe_penetration = true
+	local aWDef = uDefs['armemp'][wds]['armemp_weapon']
+	local ratio = aWDef[t]
+	aWDef[t] = math.max(cWDef[t], lWDef[t]) + math.abs(cWDef[t] - lWDef[t])
+	ratio = aWDef[t] / ratio
+	aWDef.energypershot = round10(aWDef.energypershot * ratio)
+	aWDef.metalpershot = round10(aWDef.metalpershot * ratio)
 end
