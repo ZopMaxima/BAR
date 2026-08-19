@@ -82,10 +82,9 @@ local function declutter(def, sight)
 	if def then
 		def.builddistance = 200
 		def.sightdistance = sight
-		def.airsightdistance = sight
+		def.airsightdistance = sight * 1.5
 		def.energymake = nil
 		def.energystorage = nil
-		def.sonardistancejam = nil
 	end
 end
 
@@ -131,6 +130,47 @@ local function mulDamage(def, m)
 	end
 end
 
+local function overpen(w)
+	w.impactonly = true
+	w.noExplode = true
+	w[cps] = w[cps] or {}
+	w[cps].overpenetrate = true
+	w[cps].overpenetrate_falloff = false
+end
+
+local function dgun(w, range)
+	w.range = range
+	w.commandfire = true
+	w[cps] = w[cps] or {}
+	w[cps].weapons_group = 1
+end
+
+local function legDgun(w, range, energy)
+	dgun(w, range)
+	w.stockpile = true
+	w.energypershot = energy
+	w.stockpiletime = 10
+	w.reloadtime = 1
+	w.waterweapon = true
+	w.impulseboost = energy
+	w.areaofeffect = 100
+	w.craterareaofeffect = 100
+	w.craterboost = 1
+	w.cratermult = 1
+	w.explosiongenerator = 'custom:starfire-explosion'
+	w.avoidfeature = false
+	w.avoidfriendly = false
+	w.collideenemy = true
+	w.collidefriendly = true
+	w.collidefeature = true
+	w.noselfdamage = false
+	w[cps].stockpilelimit = 1
+	w[cps].place_target_on_ground = true
+	clear(w.damage)
+	w.damage.default = math.floor(energy / 100)
+	w.damage.shields = energy * 2
+end
+
 --Cor
 local corID = 'cormando'
 if tweakCor and uDefs[corID] then
@@ -155,14 +195,6 @@ if tweakCor and tweakT4 and uDefs[corT4ID] then
 	def[fds].heap.metal = def.metalcost * 0.5
 	def.explodeas = 'largeExplosionGeneric'
 	def.selfdestructas = 'largeExplosionGenericSelfd'
-end
-
-local function overpen(w)
-	w.impactonly = true
-	w.noExplode = true
-	w[cps] = w[cps] or {}
-	w[cps].overpenetrate = true
-	w[cps].overpenetrate_falloff = false
 end
 
 --Arm (legcomt2off)
@@ -212,12 +244,9 @@ if tweakArm and uDefs[corID] then
 	def[wds].janus_rocket = table.copy(uDefs['armjanus'][wds]['janus_rocket'])
 	local wDefR = def[wds]['janus_rocket']
 	wDefR.name = 'High-Explosive Missile Launcher'
-	wDefR.range = wDefL.range
+	dgun(wDefR, wDefL.range)
 	wDefR.areaofeffect = wDefR.areaofeffect * 1.5
-	wDefR.commandfire = true
 	mulDamage(wDefR, 2)
-	wDefR[cps] = wDefR[cps] or {}
-	wDefR[cps].weapons_group = 1
 	def[wpn][3] = table.copy(uDefs['armjanus'][wpn][1])
 	--Lab
 	addBO('armalab', newID)
@@ -271,50 +300,18 @@ if tweakArm and tweakT4 and uDefs[corT4ID] then
 	def[wds].armpb_weapon = table.copy(uDefs['armpb'][wds]['armpb_weapon'])
 	local wDefS = def[wds]['armpb_weapon']
 	wDefS.name = 'Burst-Fire Gauss Cannon'
-	wDefS.range = wDefL.range
-	wDefS.commandfire = true
+	dgun(wDefS, wDefL.range)
 	wDefS.stockpile = true
 	wDefS.metalpershot = 24
 	wDefS.stockpiletime = 5
 	wDefS.reloadtime = 0.125
-	wDefS[cps] = wDefS[cps] or {}
 	wDefS[cps].stockpilelimit = 6
-	wDefS[cps].weapons_group = 1
 	def[wpn][1].onlytargetcategory = 'NOTAIR'
 	def[wpn][2] = nil
 	def[wpn][5] = table.copy(uDefs['armpb'][wpn][1])
 	--Lab
 	addBO('armshltx', newID)
 	addBO('armshltxuw', newID)
-end
-
-local function legDgun(w, range, energy, impulse)
-	w.range = range
-	w.commandfire = true
-	w.stockpile = true
-	w.energypershot = energy
-	w.stockpiletime = 10
-	w.reloadtime = 1
-	w.waterweapon = true
-	w.impulsefactor = impulse
-	w.areaofeffect = 100
-	w.craterareaofeffect = 100
-	w.craterboost = 1
-	w.cratermult = 1
-	w.explosiongenerator = 'custom:starfire-explosion'
-	w.avoidfeature = false
-	w.avoidfriendly = false
-	w.collideenemy = true
-	w.collidefriendly = true
-	w.collidefeature = true
-	w.noselfdamage = false
-	w[cps] = w[cps] or {}
-	w[cps].stockpilelimit = 1
-	w[cps].weapons_group = 1
-	w[cps].place_target_on_ground = 'true'
-	clear(w.damage)
-	w.damage.default = math.floor(energy / 100)
-	w.damage.shields = energy * 2
 end
 
 --Leg (legcomlvl2)
@@ -370,7 +367,7 @@ if tweakLeg and uDefs[corID] then
 	local wDefR = def[wds]['corlevlr_weapon']
 	wDefR.name = 'Shieldbreaker Grenade'
 	wDefR.rgbcolor = '1 1 1'
-	legDgun(wDefR, wDefL.range, 5000, 100)
+	legDgun(wDefR, wDefL.range, 5000)
 	def[wpn][3] = table.copy(uDefs['legdtr'][wpn][1])
 	--Lab
 	addBO('legalab', newID)
@@ -437,8 +434,7 @@ if tweakLeg and tweakT4 and uDefs[corT4ID] then
 	clear(wDefR)
 	mergeRec(wDefR, uDefs[corT4ID][wds]['commando_stunner'])
 	wDefR.name = 'Shieldbreaker Burst'
-	legDgun(wDefR, wDefL.range, 25000, 50)
-	wDefR[cps].place_target_on_ground = nil
+	legDgun(wDefR, wDefL.range, 25000)
 	wDefR.projectiles = nil
 	wDefR.paralyzer = nil
 	wDefR.paralyzetime = nil
@@ -449,7 +445,7 @@ if tweakLeg and tweakT4 and uDefs[corT4ID] then
 	local wDefS = def[wds]['emp']
 	wDefS.name = 'Juno Beam'
 	wDefS.range = wDefL.range
-	wDefS.thickness = wDefL.thickness * 0.25
+	wDefS.thickness = wDefS.thickness * 0.5
 	wDefS.reloadtime = wDefS.reloadtime * 0.5
 	wDefS.beamtime = wDefS.beamtime * 0.5
 	wDefS.canattackground = false
