@@ -5,13 +5,15 @@ local cps = 'customparams'
 local fds = 'featuredefs'
 local wds = 'weapondefs'
 local wpn = 'weapons'
+local otc = 'onlytargetcategory'
+local btc = 'badtargetcategory'
 
 local tweakArm = true
 local tweakCor = true
 local tweakLeg = true
 local tweakT4 = true
 
-local catJunoTarget = 'JUNOTARGET'
+local catJuno = 'JUNOTARGET'
 
 local function round10(n)
 	return math.floor(n * 0.1) * 10
@@ -35,17 +37,11 @@ local function clear(m)
 	end
 end
 
-local function remodel(def, name, hasDead, hasDecal)
+local function remodel(def, name, pic)
 	if def then
-		def.buildpic = name..'.DDS'
+		def.buildpic = pic..'.DDS'
 		def.objectname = 'Units/'..name..'.s3o'
 		def.script = 'Units/'..name..'.cob'
-		if hasDead then
-			def[fds].dead.object = 'Units/'..string.lower(name)..'_dead.s3o'
-		end
-		if hasDecal then
-			def[cps].buildinggrounddecaltype = 'decals/'..string.lower(name)..'_aoplane.dds'
-		end
 	end
 end
 
@@ -98,7 +94,7 @@ local function cloak(def, rank)
 		def.radardistancejam = range[rank]
 		def.sonardistancejam = range[rank]
 		def.cloakcost = drain[rank]
-		def.cloakcostmoving = round10(drain[rank] * 5)
+		def.cloakcostmoving = drain[rank] * 5
 	end
 end
 
@@ -110,9 +106,9 @@ local function mulPrice(def, m, e)
 	end
 end
 
-local function corpse(def, ref)
+local function corpse(def, ref, explode)
 	if def then
-		def.corpse = 'DEAD'
+		def.corpse = (explode and 'HEAP') or 'DEAD'
 		def[fds] = def[fds] or {}
 		def[fds].dead = table.copy(uDefs[ref][fds].dead)
 		def[fds].heap = table.copy(uDefs[ref][fds].heap)
@@ -177,10 +173,7 @@ if tweakCor and uDefs[corID] then
 	local def = uDefs[corID]
 	declutter(def, def.sightdistance)
 	cloak(def, 2)
-	def.corpse = 'HEAP'
-	def[fds] = def[fds] or {}
-	def[fds].heap = table.copy(uDefs['corfast'][fds].heap)
-	def[fds].heap.metal = def.metalcost * 0.5
+	corpse(def, 'corfast', true)
 end
 
 --Cor T4
@@ -189,10 +182,7 @@ if tweakCor and tweakT4 and uDefs[corT4ID] then
 	local def = uDefs[corT4ID]
 	declutter(def, def.sightdistance)
 	cloak(def, 3)
-	def.corpse = 'HEAP'
-	def[fds] = def[fds] or {}
-	def[fds].heap = table.copy(uDefs['corshiva'][fds].heap)
-	def[fds].heap.metal = def.metalcost * 0.5
+	corpse(def, 'corshiva', true)
 	def.explodeas = 'largeExplosionGeneric'
 	def.selfdestructas = 'largeExplosionGenericSelfd'
 end
@@ -202,9 +192,8 @@ if tweakArm and uDefs[corID] then
 	local newID = 'acormando'
 	uDefs[newID] = table.copy(uDefs[corID])
 	local def = uDefs[newID]
-	remodel(def, 'LEGCOMOFF', false, false)
+	remodel(def, 'LEGCOMOFF', 'LEGCOMT2OFF')
 	setDesc(def, 'Vandal', 'Combat Commando Bot')
-	def.buildpic = 'LEGCOMT2OFF.DDS'
 	def.icontype = corID
 	def.buildoptions = {
 		'armeyes',
@@ -241,7 +230,7 @@ if tweakArm and uDefs[corID] then
 	overpen(wDefL)
 	wDefL[cps].weapons_group = 1
 	--Right
-	def[wds].janus_rocket = table.copy(uDefs['armjanus'][wds]['janus_rocket'])
+	def[wds]['janus_rocket'] = table.copy(uDefs['armjanus'][wds]['janus_rocket'])
 	local wDefR = def[wds]['janus_rocket']
 	wDefR.name = 'High-Explosive Missile Launcher'
 	dgun(wDefR, wDefL.range)
@@ -257,9 +246,8 @@ if tweakArm and tweakT4 and uDefs[corT4ID] then
 	local newID = 'acormandot4'
 	uDefs[newID] = table.copy(uDefs[corT4ID])
 	local def = uDefs[newID]
-	remodel(def, 'LEGCOMT2COM', false, false)
+	remodel(def, 'LEGCOMT2COM', 'LEGCOMT2COM')
 	setDesc(def, 'Epic Vandal', 'Heavy Combat Commando Bot')
-	def.buildpic = 'LEGCOMT2COM.DDS'
 	def.icontype = corID
 	def.buildoptions = {
 		'armeyes',
@@ -297,7 +285,7 @@ if tweakArm and tweakT4 and uDefs[corT4ID] then
 	overpen(wDefL)
 	mulDamage(wDefL, 3)
 	--Shoulder
-	def[wds].armpb_weapon = table.copy(uDefs['armpb'][wds]['armpb_weapon'])
+	def[wds]['armpb_weapon'] = table.copy(uDefs['armpb'][wds]['armpb_weapon'])
 	local wDefS = def[wds]['armpb_weapon']
 	wDefS.name = 'Burst-Fire Gauss Cannon'
 	dgun(wDefS, wDefL.range)
@@ -306,7 +294,7 @@ if tweakArm and tweakT4 and uDefs[corT4ID] then
 	wDefS.stockpiletime = 5
 	wDefS.reloadtime = 0.125
 	wDefS[cps].stockpilelimit = 6
-	def[wpn][1].onlytargetcategory = 'NOTAIR'
+	def[wpn][1][otc] = 'NOTAIR'
 	def[wpn][2] = nil
 	def[wpn][5] = table.copy(uDefs['armpb'][wpn][1])
 	--Lab
@@ -319,9 +307,8 @@ if tweakLeg and uDefs[corID] then
 	local newID = 'lcormando'
 	uDefs[newID] = table.copy(uDefs[corID])
 	local def = uDefs[newID]
-	remodel(def, 'legevocom1', false, false)
+	remodel(def, 'legevocom1', 'LEGCOM')
 	setDesc(def, 'Saboteur', 'Utility Commando Bot')
-	def.buildpic = 'LEGCOM.DDS'
 	def.icontype = corID
 	def.buildoptions = {
 		'legeyes',
@@ -353,7 +340,7 @@ if tweakLeg and uDefs[corID] then
 	clear(wDefL.damage)
 	wDefL.damage.default = 4
 	wDefL.damage.vtol = 2
-	wDefL.customparams = {
+	wDefL[cps] = {
 		area_onhit_ceg = 'treeburn-tiny',
 		area_onhit_damageCeg = 'burnflame-xs',
 		area_onhit_resistance = 'fire',
@@ -378,9 +365,8 @@ if tweakLeg and tweakT4 and uDefs[corT4ID] then
 	local newID = 'lcormandot4'
 	uDefs[newID] = table.copy(uDefs[corT4ID])
 	local def = uDefs[newID]
-	remodel(def, 'legevocom3', false, false)
+	remodel(def, 'legevocom3', 'LEGCOM')
 	setDesc(def, 'Epic Saboteur', 'Refined Utility Commando Bot')
-	def.buildpic = 'LEGCOM.DDS'
 	def.icontype = corID
 	def.buildoptions = {
 		'legeyes',
@@ -428,7 +414,7 @@ if tweakLeg and tweakT4 and uDefs[corT4ID] then
 	wDefL.soundhitdry = ''
 	wDefL.soundhitwet = 'sizzle'
 	wDefL.soundtrigger = 1
-	wDefL.explosiongenerator = 'custom:genericshellexplosion-small-air'
+	wDefL.explosiongenerator = 'custom:genericshellexplosion-tiny-aa'
 	--Right
 	local wDefR = def[wds]['commando_back_cannon']
 	clear(wDefR)
@@ -457,14 +443,14 @@ if tweakLeg and tweakT4 and uDefs[corT4ID] then
 	wDefS.proximitypriority = 1
 	wDefS.soundstart = 'beamershot2'
 	wDefS.rgbcolor = '0.75 1.0 0.4'
-	def[wpn][1].onlytargetcategory = 'NOTAIR'
-	def[wpn][1].badtargetcategory = catJunoTarget
-	def[wpn][2].onlytargetcategory = 'NOTAIR'
+	def[wpn][1][otc] = 'NOTAIR'
+	def[wpn][1][btc] = catJuno
+	def[wpn][2][otc] = 'NOTAIR'
 	def[wpn][4] = {
 		def = 'EMP',
 		fastautoretargeting = true,
-		onlytargetcategory = catJunoTarget,
-		badtargetcategory = 'VTOL WEAPON',
+		[otc] = catJuno,
+		[btc] = 'VTOL WEAPON',
 	}
 	--Lab
 	addBO('leggant', newID)
@@ -475,6 +461,6 @@ end
 for _, def in pairs(uDefs) do
 	local isRadJam = (not def[wds] or not next(def[wds])) and not def.builder and ((def.radardistance or 0) > 0 or (def.radardistancejam or 0) > 0)
 	if hasCategory(def, 'GROUNDSCOUT') or hasCategory(def, 'LIGHTAIRSCOUT') or isRadJam then
-		categorize(def, 'category', catJunoTarget)
+		categorize(def, 'category', catJuno)
 	end
 end
