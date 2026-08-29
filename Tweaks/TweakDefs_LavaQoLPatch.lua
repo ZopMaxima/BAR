@@ -205,8 +205,9 @@ end
 --Pilum Nerf
 if tweakPilum then
 	local wDef = uDefs['legbunk'][wds]['piledriver']
-	wDef.areaofeffect = wDef.areaofeffect * 0.25
-	mulAll(wDef.damage, 0.25)
+	wDef.areaofeffect = wDef.areaofeffect * 0.375
+	wDef.weaponvelocity = wDef.weaponvelocity * 0.75
+	mulAll(wDef.damage, 0.2)
 end
 
 --Behemoth Nerf
