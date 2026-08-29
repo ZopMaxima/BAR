@@ -1,4 +1,4 @@
---Lava Sky Ops 1.2 (Zop)
+--Lava Sky Ops 1.3 (Zop)
 local mods = Spring.GetModOptions()
 local uDefs = UnitDefs or {}
 local cps = 'customparams'
@@ -14,7 +14,6 @@ local cruiseOrbit = 1000
 local noSea = mods.map_waterislava
 
 local tweakSeaPlane = true
-local tweakTorpedo = true
 local tweakAirPrice = true
 local tweakAirTrans = true
 local tweakFlags = true
@@ -145,28 +144,6 @@ if tweakSeaPlane then
 	addBO('legspcon', 'legaap')
 end
 
---Torpedo buffs to fight T3.
-if tweakTorpedo then
-	local hpMul = 2
-	local dmgMul = 2
-	for id, def in pairs(uDefs) do
-		local hasWW = false
-		if def[wds] then
-			for _, w in pairs(def[wds]) do
-				if w.waterweapon then
-					for k, v in pairs(w.damage) do
-						w.damage[k] = math.floor(v * dmgMul)
-					end
-					hasWW = true
-				end
-			end
-		end
-		if hasWW and allAir[id] then
-			def.health = def.health * hpMul
-		end
-	end
-end
-
 --Air combat tweaks, energy tax.
 if tweakAirPrice then
 	local airMCMul = 2
@@ -245,6 +222,74 @@ if tweakAirTrans then
 	end
 end
 
+local function drone(lDef)
+	local cDef = uDefs['legspcarrier']
+	local dDef = uDefs['legheavydrone']
+	if not cDef or not dDef then return end
+	local stats = {
+		onlytargetcategory = 'VTOL',
+		badtargetcategory = 'NOTAIR',
+		fastautoretargeting = true,
+	}
+	local dID = 'legheavydroneaa'
+	uDefs[dID] = table.copy(dDef)
+	dDef = uDefs[dID]
+	allAir[dID] = dDef
+	dDef.icontype = 'legheavydrone'
+	dDef.nochasecategory = 'NOTAIR'
+	dDef.health = dDef.health * 0.5
+	local w = dDef[wds]['heat_ray']
+	w.canattackground = false
+	w.rgbcolor = '1 0.4 0.95'
+	w.rgbcolor2 = '1 0.8 1'
+	w.explosiongenerator = 'custom:genericshellexplosion-tiny-aa'
+	w.damage.vtol = w.damage.default
+	mergeRec(dDef[wpn][1], stats)
+	local dWID = 'drones'
+	w = table.copy(cDef[wds]['leg_drone_controller'])
+	lDef[wds][dWID] = w
+	w[cps].carried_unit = dID
+	w[cps].carrierdeaththroe = 'death'
+	w[cps].dronetype = 'fighter'
+	w[cps].droneminimumidleradius = 200
+	w[cps].attackformationspread = 200
+	w[cps].attackformationoffset = 30
+	w[cps].maxunits = 4
+	w[cps].enabledocking = 0
+	w[cps].dockingpieces = ' '
+	w[cps].droneairtime = nil
+	w[cps].droneammo = nil
+	w[cps].stockpilelimit = w[cps].maxunits
+	w[cps].stockpilemetal = dDef.metalcost
+	w[cps].stockpileenergy = dDef.energycost
+	w[cps].metalcost = dDef.metalcost
+	w[cps].energycost = dDef.energycost
+	w.range = lDef[wds]['plasma'].range
+	w[cps].engagementrange = w.range * 0.5
+	w[cps].controlradius = w.range
+	w.canattackground = false
+	w.weapontype = 'LaserCannon'
+	w.gravityaffected = nil
+	w.hightrajectory = nil
+	w.metalpershot = dDef.metalcost
+	w.energypershot = dDef.energycost
+	w.cylindertargeting = 1
+	w.proximitypriority = 1
+	w.reloadtime = 0.1
+	w.weaponvelocity = 2000
+	w.tolerance = 65536
+	lDef[cps].inheritxpratemultiplier = 1
+	lDef[cps].childreninheritxp = 'DRONE'
+	lDef[cps].parentsinheritxp = 'DRONE'
+	lDef[cps].flyingcarrier = true
+	local i = indexOfWeapon(cDef, 'leg_drone_controller', 1)
+	if i < 1 then return end
+	lDef[wpn][#lDef[wpn] + 1] = table.copy(cDef[wpn][i])
+	local dWpn = lDef[wpn][#lDef[wpn]]
+	dWpn.def = dWID
+	mergeRec(dWpn, stats)
+end
+
 --Flagship AA boost.
 if tweakFlags then
 	local aDef = uDefs['armfepocht4']
@@ -278,7 +323,7 @@ if tweakFlags then
 	mergeRec(aWDef, aAAWDef)
 	mergeWeapons(aDef, aWID, aAADef, aAAWID)
 	aWDef.reloadtime = aWDef.reloadtime * 0.5
-	aWDef.damage.vtol = aWDef.damage.vtol * 0.375
+	aWDef.damage.vtol = aWDef.damage.vtol * 0.25
 	aDef[wds][aWID2] = table.copy(aWDef)
 	aDef[wds][aWID2].proximitypriority = -1
 	aDef[wds][aWID].proximitypriority = 1
@@ -305,7 +350,7 @@ if tweakFlags then
 	cWDef.range = round10(cWDef.range * 1.1)
 	cWDef.proximitypriority = 1
 	cWDef[cps].noattackrangearc = nil
-	cWDef.damage.vtol = math.floor(cWDef.damage.vtol * 0.15)
+	cWDef.damage.vtol = math.floor(cWDef.damage.vtol * 0.125)
 	cDef[wds][cWID2] = table.copy(cWDef)
 	cDef[wds][cWID2].proximitypriority = -1
 	i1 = indexOfWeapon(cDef, cWID, 1)
@@ -340,6 +385,7 @@ if tweakFlags then
 	lWDef.explosiongenerator = 'custom:genericshellexplosion-medium-aa'
 	lWDef.areaofeffect = lWDef.areaofeffect * 0.2
 	lWDef.damage.vtol = math.floor(lWDef.damage.vtol * 1.5)
+	drone(lDef)
 end
 
 --Redistribute AoE, prefer ATS targets.
