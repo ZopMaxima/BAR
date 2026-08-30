@@ -1,4 +1,4 @@
---Lava QoL Patch 1.2 (Zop)
+--Lava QoL Patch 1.3 (Zop)
 --Quad Pharos pick by MGGW
 local mods = Spring.GetModOptions()
 local uDefs = UnitDefs or {}
@@ -427,9 +427,9 @@ end
 if tweakTacs then
 	local t = 'stockpiletime'
 	local cWDef = uDefs['cortron'][wds]['cortron_weapon']
-	cWDef.damage.shields = math.floor(cWDef.damage.default * 2.5)
+	cWDef.damage.shields = math.floor(cWDef.damage.default * 2.125)
 	local lWDef = uDefs['legperdition'][wds]['napalmmissile']
-	lWDef.damage.shields = math.floor(lWDef.damage.default * 7.5)
+	lWDef.damage.shields = math.floor(lWDef.damage.default * 9.125)
 	lWDef[cps].shield_aoe_penetration = true
 	local aWDef = uDefs['armemp'][wds]['armemp_weapon']
 	local ratio = aWDef[t]
