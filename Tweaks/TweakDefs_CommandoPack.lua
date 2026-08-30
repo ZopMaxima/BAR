@@ -1,4 +1,4 @@
---Commando Pack 1.1 (Zop)
+--Commando Pack 1.2 (Zop)
 --Unit names must contain 'cormando' for unit_commando_watch.lua.
 local uDefs = UnitDefs or {}
 local cps = 'customparams'
@@ -290,9 +290,10 @@ if tweakArm and tweakT4 and uDefs[corT4ID] then
 	wDefS.name = 'Burst-Fire Gauss Cannon'
 	dgun(wDefS, wDefL.range)
 	wDefS.stockpile = true
-	wDefS.metalpershot = 24
-	wDefS.stockpiletime = 5
+	wDefS.metalpershot = 60
+	wDefS.stockpiletime = 10
 	wDefS.reloadtime = 0.125
+	mulDamage(wDefS, 0.5)
 	wDefS[cps].stockpilelimit = 6
 	def[wpn][1][otc] = 'NOTAIR'
 	def[wpn][2] = nil
@@ -338,8 +339,8 @@ if tweakLeg and uDefs[corID] then
 	wDefL.accuracy = wDefL.accuracy * 1.5
 	wDefL.explosiongenerator = 'custom:genericshellexplosion-tiny-aa'
 	clear(wDefL.damage)
-	wDefL.damage.default = 4
-	wDefL.damage.vtol = 2
+	wDefL.damage.default = 2
+	wDefL.damage.vtol = 1
 	wDefL[cps] = {
 		area_onhit_ceg = 'treeburn-tiny',
 		area_onhit_damageCeg = 'burnflame-xs',
@@ -402,7 +403,8 @@ if tweakLeg and tweakT4 and uDefs[corT4ID] then
 	wDefL.reloadtime = wDefL.burst * wDefL.burstrate * 2
 	wDefL.thickness = wDefL.thickness * 2
 	mulDamage(wDefL, 4)
-	wDefL[cps].area_onhit_damage = 125
+	wDefL[cps].area_onhit_damage = 60
+	wDefL[cps].area_onhit_time = 4
 	wDefL.canattackground = true
 	wDefL.weapontype = 'BeamLaser'
 	wDefL.beamburst = true
