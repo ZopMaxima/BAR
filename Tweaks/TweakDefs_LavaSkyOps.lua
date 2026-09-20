@@ -1,4 +1,4 @@
---Lava Sky Ops 1.3 (Zop)
+--Lava Sky Ops 1.3.1 (Zop)
 local mods = Spring.GetModOptions()
 local uDefs = UnitDefs or {}
 local cps = 'customparams'
@@ -144,7 +144,7 @@ if tweakSeaPlane then
 	addBO('legspcon', 'legaap')
 end
 
---Air combat tweaks, energy tax.
+--Air price, energy tax.
 if tweakAirPrice then
 	local airMCMul = 2
 	local airMCCutoff = 12500
@@ -177,7 +177,7 @@ if tweakAirPrice then
 	end
 end
 
---Transport paratrooper.
+--Paratroopers
 if tweakAirTrans then
 	local mvc = 'movementclass'
 	local amph = { 'ATANK', 'ABOT', 'VBOT', 'COMM', 'EPIC' }
@@ -190,7 +190,7 @@ if tweakAirTrans then
 			def[cps] = def[cps] or {}
 			def[cps].paratrooper = true
 			local fdm = 'fall_damage_multiplier'
-			if not def[cps][fdm] then
+			if not def[cps][fdm] and not def.cantbetransported then
 				if def[mvc] and string.find(def[mvc], 'HOVER') then
 					def[cps][fdm] = 0.125
 					def[cps]['water_'..fdm] = 0
@@ -409,7 +409,7 @@ local function tweakLRAA(uID, wID)
 	return wDef
 end
 
---More reliable LRAA.
+--Reliable LRAA.
 if tweakScreamers then
 	for id, def in pairs(allAir) do
 		local isATA = false
