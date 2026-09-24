@@ -1,4 +1,4 @@
---Lava Sky Ops 1.3.1 (Zop)
+--Lava Sky Ops 1.3.2 (Zop)
 local mods = Spring.GetModOptions()
 local uDefs = UnitDefs or {}
 local cps = 'customparams'
@@ -152,11 +152,8 @@ if tweakAirPrice then
 	local airDrainMMul = 0.001
 	local airDrainEMul = 0.01
 	for id, def in pairs(allAir) do
-		if next(def[wds] or {}) or next(def[wpn] or {}) then
+		if (def.transportcapacity and def[cps] and (def[cps].techlevel or 0) > 1) or next(def[wds] or {}) or next(def[wpn] or {}) then
 			local mcMul = math.max(1, math.min(airMCCutoff / def.metalcost, airMCMul))
-			if def.transportcapacity then
-				mcMul = 1 + ((mcMul - 1) * 0.5)
-			end
 			def.buildtime = math.floor(def.buildtime * ((mcMul + airECMul) * 0.5))
 			def.metalcost = math.floor(def.metalcost * mcMul)
 			def.energycost = math.floor(def.energycost * airECMul)
@@ -186,11 +183,11 @@ if tweakAirTrans then
 			if allAir[id] and def.transportcapacity then
 				def.isfireplatform = true
 			end
-		elseif def.canmove then
+		elseif def.canmove and not def.cantbetransported then
 			def[cps] = def[cps] or {}
 			def[cps].paratrooper = true
 			local fdm = 'fall_damage_multiplier'
-			if not def[cps][fdm] and not def.cantbetransported then
+			if not def[cps][fdm] then
 				if def[mvc] and string.find(def[mvc], 'HOVER') then
 					def[cps][fdm] = 0.125
 					def[cps]['water_'..fdm] = 0
