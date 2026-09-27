@@ -1,4 +1,4 @@
---Riot Titan (Zop)
+--Riot Titan 1.1 (Zop)
 local uDefs = UnitDefs or {}
 local cps = 'customparams'
 local wds = 'weapondefs'
@@ -55,6 +55,7 @@ if tweakShieldTitan then
 	setDesc(def, 'Riot Titan', 'Heavy-Shielded Riot Mech')
 	def.icontype = 'armbanth'
 	def[cps].iscommander = nil
+	def[cps].tombstone = nil
 	def.showplayername = nil
 	def.hidedamage = nil
 	def.builder = false
