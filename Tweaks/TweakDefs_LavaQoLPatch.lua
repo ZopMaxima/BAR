@@ -1,4 +1,4 @@
---Lava QoL Patch 1.3 (Zop)
+--Lava QoL Patch 1.4 (Zop)
 --Quad Pharos pick by MGGW
 local mods = Spring.GetModOptions()
 local uDefs = UnitDefs or {}
@@ -243,6 +243,15 @@ end
 
 --Pulsar vs Pulsar
 if tweakPulsar then
+	local o = 'onoffable'
+	uDefs['armgate'][o] = false
+	uDefs['armfgate'][o] = false
+	uDefs['armgatet3'][o] = false
+	uDefs['corgate'][o] = false
+	uDefs['corfgate'][o] = false
+	uDefs['corgatet3'][o] = false
+	uDefs['legdeflector'][o] = false
+	uDefs['leggatet3'][o] = false
 	local def = uDefs['armannit3']
 	if def then
 		def[cps].unitmidpos = '0 66 0'
