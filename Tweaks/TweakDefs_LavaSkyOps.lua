@@ -1,4 +1,4 @@
---Lava Sky Ops 1.3.2 (Zop)
+--Lava Sky Ops 1.4 (Zop)
 local mods = Spring.GetModOptions()
 local uDefs = UnitDefs or {}
 local cps = 'customparams'
@@ -12,6 +12,7 @@ local catAirUtil = 'AIR_UTIL'
 local cruiseOrbit = 1000
 
 local noSea = mods.map_waterislava
+local slowComm = mods.comm_trans_slow
 
 local tweakSeaPlane = true
 local tweakAirPrice = true
@@ -39,6 +40,10 @@ local function unwater(id)
 	end
 end
 
+local function tryLower(v)
+	return type(v) == 'string' and string.lower(v) or v
+end
+
 local function addBO(conID, id)
 	local cDef = UnitDefs[conID]
 	local uDef = UnitDefs[id]
@@ -51,19 +56,35 @@ local function mergeRec(def, ref)
 	table.mergeInPlace(def, ref, true)
 end
 
-local function clear(m)
-	for k, v in pairs(m) do
-		m[k] = nil
+local function clear(t)
+	for k, v in pairs(t) do
+		t[k] = nil
 	end
+end
+
+local function forEachWhere(t, where, func)
+	for k, v in pairs(t) do
+		if where(k, v) then
+			func(k, v)
+		end
+    end
+end
+
+local function forEachKey(t, key, func)
+	forEachWhere(t, function (k, v) return k == key end, func)
+end
+
+local function forEachValue(t, val, match, func)
+	match = tryLower(match)
+	forEachWhere(t, function(k, v) return tryLower(v[val]) == match end, func)
 end
 
 local function indexOfWeapon(def, id, start)
 	if def then
-		local lowID = string.lower(id)
+		local lowID = tryLower(id)
 		for i = start, #def[wpn] do
 			if def[wpn][i].def then
-				local lowDef = string.lower(def[wpn][i].def)
-				if lowDef == lowID then
+				if tryLower(def[wpn][i].def) == lowID then
 					return i
 				end
 			end
@@ -183,7 +204,7 @@ if tweakAirTrans then
 			if allAir[id] and def.transportcapacity then
 				def.isfireplatform = true
 			end
-		elseif def.canmove and not def.cantbetransported then
+		elseif def.canmove and not def.cantbetransported and not (def[cps] and def[cps].iscommander and not slowComm) then
 			def[cps] = def[cps] or {}
 			def[cps].paratrooper = true
 			local fdm = 'fall_damage_multiplier'
@@ -210,81 +231,32 @@ if tweakAirTrans then
 				end
 			end
 			if def[wds] then
-				for i = 1, #def[wds] do
-					def[wds][i][cps] = def[wds][i][cps] or {}
-					def[wds][i][cps].collidefirebase = false
+				for _, wd in pairs(def[wds]) do
+					wd[cps] = wd[cps] or {}
+					wd[cps].collidefirebase = false
 				end
 			end
 		end
 	end
 end
 
-local function drone(lDef)
-	local cDef = uDefs['legspcarrier']
-	local dDef = uDefs['legheavydrone']
-	if not cDef or not dDef then return end
-	local stats = {
-		onlytargetcategory = 'VTOL',
-		badtargetcategory = 'NOTAIR',
-		fastautoretargeting = true,
-	}
-	local dID = 'legheavydroneaa'
-	uDefs[dID] = table.copy(dDef)
-	dDef = uDefs[dID]
-	allAir[dID] = dDef
-	dDef.icontype = 'legheavydrone'
-	dDef.nochasecategory = 'NOTAIR'
-	dDef.health = dDef.health * 0.5
-	local w = dDef[wds]['heat_ray']
-	w.canattackground = false
-	w.rgbcolor = '1 0.4 0.95'
-	w.rgbcolor2 = '1 0.8 1'
-	w.explosiongenerator = 'custom:genericshellexplosion-tiny-aa'
-	w.damage.vtol = w.damage.default
-	mergeRec(dDef[wpn][1], stats)
-	local dWID = 'drones'
-	w = table.copy(cDef[wds]['leg_drone_controller'])
-	lDef[wds][dWID] = w
-	w[cps].carried_unit = dID
-	w[cps].carrierdeaththroe = 'death'
-	w[cps].dronetype = 'fighter'
-	w[cps].droneminimumidleradius = 200
-	w[cps].attackformationspread = 200
-	w[cps].attackformationoffset = 30
-	w[cps].maxunits = 4
-	w[cps].enabledocking = 0
-	w[cps].dockingpieces = ' '
-	w[cps].droneairtime = nil
-	w[cps].droneammo = nil
-	w[cps].stockpilelimit = w[cps].maxunits
-	w[cps].stockpilemetal = dDef.metalcost
-	w[cps].stockpileenergy = dDef.energycost
-	w[cps].metalcost = dDef.metalcost
-	w[cps].energycost = dDef.energycost
-	w.range = lDef[wds]['plasma'].range
-	w[cps].engagementrange = w.range * 0.5
-	w[cps].controlradius = w.range
-	w.canattackground = false
-	w.weapontype = 'LaserCannon'
-	w.gravityaffected = nil
-	w.hightrajectory = nil
-	w.metalpershot = dDef.metalcost
-	w.energypershot = dDef.energycost
-	w.cylindertargeting = 1
-	w.proximitypriority = 1
-	w.reloadtime = 0.1
-	w.weaponvelocity = 2000
-	w.tolerance = 65536
-	lDef[cps].inheritxpratemultiplier = 1
-	lDef[cps].childreninheritxp = 'DRONE'
-	lDef[cps].parentsinheritxp = 'DRONE'
-	lDef[cps].flyingcarrier = true
-	local i = indexOfWeapon(cDef, 'leg_drone_controller', 1)
-	if i < 1 then return end
-	lDef[wpn][#lDef[wpn] + 1] = table.copy(cDef[wpn][i])
-	local dWpn = lDef[wpn][#lDef[wpn]]
-	dWpn.def = dWID
-	mergeRec(dWpn, stats)
+local function t4AA(def, wID, mul)
+	forEachValue(def[wpn], 'def', wID, function(k, v) categorize(v, 'onlytargetcategory', 'T4AIR') end)
+	local d = def[wds][wID].damage
+	d.vtol = math.max((d.default or 1) * mul, d.vtol or 1)
+end
+
+local function splitAA(def, id, idNew)
+	local i1 = indexOfWeapon(def, id, 1)
+	local i2 = indexOfWeapon(def, id, i1 + 1)
+	local w1 = def[wpn][i1]
+	local w2 = def[wpn][i2]
+	for _, w in ipairs { w1, w2 } do
+		w.fastautoretargeting = true
+		w.maxangledif = nil
+		w.maindir = nil
+	end
+	w2.def = idNew
 end
 
 --Flagship AA boost.
@@ -314,6 +286,9 @@ if tweakFlags then
 	cDef.turnrate = cDef.turnrate * 1.25
 	lDef.turnrate = lDef.turnrate * 1.125
 	lDef.radardistancejam = 600
+	lDef.category = "T4AIR"
+	t4AA(lDef, 'plasma', 0.4)
+	t4AA(lDef, 'semiauto', 0.25)
 	--Arm
 	local aWID2 = aWID .. '2'
 	clear(aWDef)
@@ -324,20 +299,13 @@ if tweakFlags then
 	aDef[wds][aWID2] = table.copy(aWDef)
 	aDef[wds][aWID2].proximitypriority = -1
 	aDef[wds][aWID].proximitypriority = 1
-	local i1 = indexOfWeapon(aDef, aWID, 1)
-	local i2 = indexOfWeapon(aDef, aWID, i1 + 1)
-	aDef[wpn][i1].maxangledif = nil
-	aDef[wpn][i2].maxangledif = nil
-	aDef[wpn][i1].maindir = nil
-	aDef[wpn][i2].maindir = nil
-	aDef[wpn][i2].def = aWID2
+	splitAA(aDef, aWID, aWID2)
 	--Cor
 	local cWID2 = cWID..'2'
 	clear(cWDef)
 	mergeRec(cWDef, cAAWDef)
 	mergeWeapons(cDef, cWID, cAADef, cAAWID)
 	cWDef.noExplode = true
-	cWDef[cps].overpenetrate = true
 	cWDef.projectiles = 2
 	cWDef.sprayangle = 1080
 	cWDef.ownerExpAccWeight = 0
@@ -346,25 +314,20 @@ if tweakFlags then
 	cWDef.reloadtime = cWDef.burstrate * cWDef.burst
 	cWDef.range = round10(cWDef.range * 1.1)
 	cWDef.proximitypriority = 1
+	cWDef[cps] = cWDef[cps] or {}
+	cWDef[cps].overpenetrate = true
 	cWDef[cps].noattackrangearc = nil
 	cWDef.damage.vtol = math.floor(cWDef.damage.vtol * 0.125)
 	cDef[wds][cWID2] = table.copy(cWDef)
 	cDef[wds][cWID2].proximitypriority = -1
-	i1 = indexOfWeapon(cDef, cWID, 1)
-	i2 = indexOfWeapon(cDef, cWID, i1 + 1)
-	cDef[wpn][i1].fastautoretargeting = true
-	cDef[wpn][i2].fastautoretargeting = true
-	cDef[wpn][i1].maxangledif = nil
-	cDef[wpn][i2].maxangledif = nil
-	cDef[wpn][i1].maindir = nil
-	cDef[wpn][i2].maindir = nil
-	cDef[wpn][i2].def = cWID2
+	splitAA(cDef, cWID, cWID2)
 	--Leg
 	clear(lWDef)
 	mergeRec(lWDef, lAAWDef)
 	mergeWeapons(lDef, lWID, lAADef, lAAWID)
 	lWDef.turnrate = lWDef.turnrate * 1.5
-	lWDef.weaponvelocity = lWDef.weaponvelocity * 0.375
+	lWDef.startvelocity = lWDef.startvelocity * 0.25
+	lWDef.weaponvelocity = lWDef.weaponvelocity * 1.25
 	lWDef.burst = 6
 	lWDef.burstrate = 0.025
 	lWDef.reloadtime = lWDef.reloadtime * 2
@@ -382,7 +345,6 @@ if tweakFlags then
 	lWDef.explosiongenerator = 'custom:genericshellexplosion-medium-aa'
 	lWDef.areaofeffect = lWDef.areaofeffect * 0.2
 	lWDef.damage.vtol = math.floor(lWDef.damage.vtol * 1.5)
-	drone(lDef)
 end
 
 --Redistribute AoE, prefer ATS targets.
@@ -396,11 +358,11 @@ local function tweakLRAA(uID, wID)
 			wDef.damage.vtol = wDef.damage.vtol * 1.5
 			wDef.edgeeffectiveness = 0
 			wDef.areaofeffect = wDef.areaofeffect * 0.5
-			local i = indexOfWeapon(def, wID, 1)
-			if i > 0 then
-				categorize(def[wpn][i], 'badtargetcategory', catAirATA)
-				categorize(def[wpn][i], 'badtargetcategory', catAirUtil)
-			end
+			forEachValue(def[wpn], 'def', wID,
+				function(k, v)
+					categorize(v, 'badtargetcategory', catAirATA)
+					categorize(v, 'badtargetcategory', catAirUtil)
+				end)
 		end
 	end
 	return wDef
@@ -440,6 +402,7 @@ if tweakScreamers then
 	if wd then
 		wd.cegtag = nil
 		wd.noExplode = true
+		wd[cps] = wd[cps] or {}
 		wd[cps].overpenetrate = true
 		wd[cps].overpenetrate_falloff = true
 	end
