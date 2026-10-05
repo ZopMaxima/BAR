@@ -1,4 +1,4 @@
---Lava Sky Ops 1.4 (Zop)
+--Lava Sky Ops 1.4.1 (Zop)
 local mods = Spring.GetModOptions()
 local uDefs = UnitDefs or {}
 local cps = 'customparams'
@@ -68,10 +68,6 @@ local function forEachWhere(t, where, func)
 			func(k, v)
 		end
     end
-end
-
-local function forEachKey(t, key, func)
-	forEachWhere(t, function (k, v) return k == key end, func)
 end
 
 local function forEachValue(t, val, match, func)
@@ -204,7 +200,7 @@ if tweakAirTrans then
 			if allAir[id] and def.transportcapacity then
 				def.isfireplatform = true
 			end
-		elseif def.canmove and not def.cantbetransported and not (def[cps] and def[cps].iscommander and not slowComm) then
+		elseif def.canmove and not def.cantbetransported and not (not slowComm and def[cps] and def[cps].iscommander and (tonumber(def[cps].evocomlvl) or 0) <= 1) then
 			def[cps] = def[cps] or {}
 			def[cps].paratrooper = true
 			local fdm = 'fall_damage_multiplier'
