@@ -1,4 +1,4 @@
---TD Funcs (Zop)
+--TDFuncs 1.0 (Zop)
 local uDefs = UnitDefs or {}
 local shared = Shared or {}
 local cps = 'customparams'
@@ -346,7 +346,7 @@ local function duplicateUnit(id, newID)
 	if ref and newID then
 		uDefs[newID] = table.copy(ref)
 		local def = uDefs[newID]
-		def.buildpic = ref.buildpic or (tryUpper(id) .. '.DDS')
+		def.icontype = ref.icontype or id
 		def[cps] = def[cps] or {}
 		def[cps].i18nfromunit = nil
 		local i18nID = (ref[cps] and ref[cps].i18nfromunit) or id

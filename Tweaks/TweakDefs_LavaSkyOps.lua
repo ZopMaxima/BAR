@@ -1,4 +1,4 @@
---Lava Sky Ops 1.4.1 (Zop)
+--Lava Sky Ops 1.4.2 (Zop)
 local mods = Spring.GetModOptions()
 local uDefs = UnitDefs or {}
 local cps = 'customparams'
@@ -16,6 +16,7 @@ local slowComm = mods.comm_trans_slow
 
 local tweakSeaPlane = true
 local tweakAirPrice = true
+local tweakComm = true
 local tweakAirTrans = true
 local tweakFlags = true
 local tweakScreamers = true
@@ -42,6 +43,18 @@ end
 
 local function tryLower(v)
 	return type(v) == 'string' and string.lower(v) or v
+end
+
+local function duplicateUnit(id, newID)
+	local ref = uDefs[id]
+	if ref and newID then
+		uDefs[newID] = table.copy(ref)
+		local def = uDefs[newID]
+		def.icontype = ref.icontype or id
+		def[cps] = def[cps] or {}
+		def[cps].i18nfromunit = (ref[cps] and ref[cps].i18nfromunit) or id
+		return def
+	end
 end
 
 local function addBO(conID, id)
@@ -191,6 +204,26 @@ if tweakAirPrice then
 	end
 end
 
+--Delayed comm drops.
+if tweakComm and not slowComm and not mods.evocom then
+	local firstTide = (noSea and mods.map_lavatiderhythm == 'enabled' and mods.map_lavatidemode == 'lavastarthigh' and mods.map_lavahighdwell) or 0
+	for refID, newID in pairs { armcom = 'armcompt', corcom = 'corcompt', legcom = 'legcompt', } do
+		local ref = uDefs[refID]
+		if ref then
+			local def = duplicateUnit(refID, newID)
+			def[cps] = def[cps] or {}
+			def[cps].evocomlvl = 2
+			ref[cps] = ref[cps] or {}
+			ref[cps].evocomlvl = 1
+			ref[cps].evolution_target = newID
+			ref[cps].evolution_condition = 'timer_global'
+			ref[cps].evolution_timer = (firstTide > 1 and firstTide) or ((mods.evocomleveluptime or 10) * 60)
+			ref[cps].evolution_announcement = 'Commander Paratrooper Evolved'
+			ref[cps].evolution_announcement_size = 18.5
+		end
+	end
+end
+
 --Paratroopers
 if tweakAirTrans then
 	local mvc = 'movementclass'
@@ -282,7 +315,7 @@ if tweakFlags then
 	cDef.turnrate = cDef.turnrate * 1.25
 	lDef.turnrate = lDef.turnrate * 1.125
 	lDef.radardistancejam = 600
-	lDef.category = "T4AIR"
+	lDef.category = 'T4AIR'
 	t4AA(lDef, 'plasma', 0.4)
 	t4AA(lDef, 'semiauto', 0.25)
 	--Arm
