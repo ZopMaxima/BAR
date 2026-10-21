@@ -1,4 +1,4 @@
---Lava QoL Patch 1.4 (Zop)
+--Lava QoL Patch 1.5 (Zop)
 --Quad Pharos pick by MGGW
 local mods = Spring.GetModOptions()
 local uDefs = UnitDefs or {}
@@ -58,9 +58,17 @@ local function mulAll(map, mul)
 	end
 end
 
+local function mulPrice(def, mMul, eMul)
+	if def then
+		def.metalcost = round10(def.metalcost * mMul)
+		def.energycost = round10(def.energycost * eMul)
+		def.buildtime = round10(def.buildtime * (mMul + eMul) * 0.5)
+	end
+end
+
 local function addBO(conID, id)
-	local cDef = UnitDefs[conID]
-	local uDef = UnitDefs[id]
+	local cDef = uDefs[conID]
+	local uDef = uDefs[id]
 	if cDef and uDef and not cDef.buildoptions[id] then
 		table.insert(cDef.buildoptions, id)
 	end
@@ -73,8 +81,8 @@ local function addBOArr(conIDs, id)
 end
 
 local function rmvBO(conID, id)
-	local cDef = UnitDefs[conID]
-	local uDef = UnitDefs[id]
+	local cDef = uDefs[conID]
+	local uDef = uDefs[id]
 	if cDef and uDef then
 		for k, v in pairs(cDef.buildoptions) do
 			if v == id then
@@ -96,7 +104,7 @@ local function rmvID(id)
 end
 
 local function delID(id)
-	local def = UnitDefs[id]
+	local def = uDefs[id]
 	if def then
 		def.health = 0
 	end
@@ -221,9 +229,7 @@ if tweakBehemoth then
 	--Compatibility Check
 	local cost = def.metalcost
 	if cost == 20000 then
-		def.metalcost = round100(def.metalcost * mMul)
-		def.energycost = round100(def.energycost * eMul)
-		def.buildtime = math.floor(def.buildtime * ((mMul + eMul) * 0.5))
+		mulPrice(def, mMul, eMul)
 	end
 	def[cps].paralyzemultiplier = 2.5
 end
@@ -241,7 +247,7 @@ if tweakReclaim then
 	end
 end
 
---Pulsar vs Pulsar
+--Pulsar Problems
 if tweakPulsar then
 	local o = 'onoffable'
 	uDefs['armgate'][o] = false
@@ -252,11 +258,6 @@ if tweakPulsar then
 	uDefs['corgatet3'][o] = false
 	uDefs['legdeflector'][o] = false
 	uDefs['leggatet3'][o] = false
-	local def = uDefs['armannit3']
-	if def then
-		def[cps].unitmidpos = '0 66 0'
-		def[cps].unitaimpos = '0 58 0'
-	end
 end
 
 --Smaller Wrecks
@@ -309,15 +310,21 @@ end
 
 --Mini plasma as 'Cerberus' alternatives.
 if hasScavs and tweakMini and hasLegion then
-	local rangeMul = 1.25
-	local aWDef = uDefs['armminivulc'][wds]['armminivulc_weapon']
-	local cWDef = uDefs['corminibuzz'][wds]['corminibuzz_weapon']
-	local lWDef = uDefs['legministarfall'][wds]['starfire']
-	aWDef.range = round10(aWDef.range * rangeMul)
-	cWDef.range = round10(cWDef.range * rangeMul)
-	lWDef.range = round10(lWDef.range * rangeMul)
+	local aDef = uDefs['armminivulc']
+	local cDef = uDefs['corminibuzz']
+	local lDef = uDefs['legministarfall']
+	mulPrice(aDef, 2, 5)
+	mulPrice(cDef, 2, 5)
+	mulPrice(lDef, 2, 5)
+	local aWDef = aDef[wds]['armminivulc_weapon']
+	local cWDef = cDef[wds]['corminibuzz_weapon']
+	local lWDef = lDef[wds]['starfire']
+	aWDef.range = round10(aWDef.range * 1.25)
+	cWDef.range = round10(cWDef.range * 1.3)
+	lWDef.range = round10(lWDef.range * 1.25)
 	mulAll(aWDef.damage, 2)
 	mulAll(cWDef.damage, 2 * (aWDef.range / cWDef.range))
+	addBOArr(cACons, 'corminibuzz')
 end
 
 --Quad towers.
@@ -336,10 +343,10 @@ if hasScavs and tweakQuadLT and hasLegion then
 		local lWDef = lDef[wds]['hllt_' .. i]
 		mulAll(cWDef.damage, 0.675)
 		local dps = cWDef.damage.default / cWDef.reloadtime
-		local wr = cWDef.range + 50
+		local wr = cWDef.range + 60
 		--Arm
 		mergeRec(aWDef, uDefs['armbeamer'][wds]['armbeamer_weapon'])
-		aWDef.range = wr - 35
+		aWDef.range = wr - 45
 		aWDef.reloadtime = aWDef.reloadtime + 0.075
 		aWDef.beamtime = aWDef.reloadtime
 		aWDef.thickness = aWDef.thickness - ((i - 1) * 0.5)
@@ -349,7 +356,7 @@ if hasScavs and tweakQuadLT and hasLegion then
 		cWDef.range = wr
 		--Leg
 		mergeRec(lWDef, uDefs['leglht'][wds]['heat_ray'])
-		lWDef.range = wr - 15
+		lWDef.range = wr - 20
 		mulAll(lWDef.damage, dps / (lWDef.damage.default / lWDef.reloadtime))
 		--Scatter Targets
 		local btc = 'badtargetcategory'
@@ -398,6 +405,7 @@ if hasScavs then
 		wDef1.stockpilelimit = 0
 		wDef1.thickness = 5
 		wDef1.weaponvelocity = wDef1.weaponvelocity * 2.5
+		wDef1.damage.default = 5000
 		mergeRec(wDef2, uDefs['legerailtank'][wds]['t3_rail_accelerator'])
 		wDef2.duration = 0.05
 		wDef2.burst = 3

@@ -1,4 +1,4 @@
---Lava Sky Ops 1.4.2 (Zop)
+--Lava Sky Ops 1.4.3 (Zop)
 local mods = Spring.GetModOptions()
 local uDefs = UnitDefs or {}
 local cps = 'customparams'
@@ -34,7 +34,7 @@ local function round10(n)
 end
 
 local function unwater(id)
-	local def = UnitDefs[id]
+	local def = uDefs[id]
 	if def then
 		def.minwaterdepth = -1000000
 		def.maxwaterdepth = 0
@@ -58,8 +58,8 @@ local function duplicateUnit(id, newID)
 end
 
 local function addBO(conID, id)
-	local cDef = UnitDefs[conID]
-	local uDef = UnitDefs[id]
+	local cDef = uDefs[conID]
+	local uDef = uDefs[id]
 	if cDef and uDef and not cDef.buildoptions[id] then
 		table.insert(cDef.buildoptions, id)
 	end
@@ -124,7 +124,7 @@ local function categorize(def, key, cat)
 end
 
 local function tweakSeaPlatform(id, hpReset, height)
-	local def = UnitDefs[id]
+	local def = uDefs[id]
 	if def then
 		local hp = def.health
 		if hp == 0 then
@@ -184,7 +184,7 @@ if tweakAirPrice then
 	for id, def in pairs(allAir) do
 		if (def.transportcapacity and def[cps] and (def[cps].techlevel or 0) > 1) or next(def[wds] or {}) or next(def[wpn] or {}) then
 			local mcMul = math.max(1, math.min(airMCCutoff / def.metalcost, airMCMul))
-			def.buildtime = math.floor(def.buildtime * ((mcMul + airECMul) * 0.5))
+			def.buildtime = math.floor(def.buildtime * (mcMul + airECMul) * 0.5)
 			def.metalcost = math.floor(def.metalcost * mcMul)
 			def.energycost = math.floor(def.energycost * airECMul)
 		end
@@ -198,7 +198,7 @@ if tweakAirPrice then
 	if eDragon then
 		eDragon.health = eDragon.health * 1.5
 		eDragon.speed = math.floor(eDragon.speed * 0.675)
-		eDragon.buildtime = math.floor(eDragon.buildtime * ((airMCMul + airECMul) * 0.5))
+		eDragon.buildtime = math.floor(eDragon.buildtime * (airMCMul + airECMul) * 0.5)
 		eDragon.metalcost = eDragon.metalcost * airMCMul
 		eDragon.energycost = eDragon.energycost * airECMul
 	end
@@ -213,12 +213,13 @@ if tweakComm and not slowComm and not mods.evocom then
 			local def = duplicateUnit(refID, newID)
 			def[cps] = def[cps] or {}
 			def[cps].evocomlvl = 2
+			def[cps].armordef = 'commanders'
 			ref[cps] = ref[cps] or {}
 			ref[cps].evocomlvl = 1
 			ref[cps].evolution_target = newID
 			ref[cps].evolution_condition = 'timer_global'
 			ref[cps].evolution_timer = (firstTide > 1 and firstTide) or ((mods.evocomleveluptime or 10) * 60)
-			ref[cps].evolution_announcement = 'Commander Paratrooper Evolved'
+			ref[cps].evolution_announcement = 'Commander Paratrooper Unlocked'
 			ref[cps].evolution_announcement_size = 18.5
 		end
 	end
