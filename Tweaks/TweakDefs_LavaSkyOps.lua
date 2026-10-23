@@ -1,4 +1,4 @@
---Lava Sky Ops 1.4.3 (Zop)
+--Lava Sky Ops 1.4.5 (Zop)
 local mods = Spring.GetModOptions()
 local uDefs = UnitDefs or {}
 local cps = 'customparams'
