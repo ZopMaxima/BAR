@@ -1,4 +1,4 @@
---Lava Sky Ops 1.4.5 (Zop)
+--Lava Sky Ops 1.4.6 (Zop)
 local mods = Spring.GetModOptions()
 local uDefs = UnitDefs or {}
 local cps = 'customparams'
@@ -27,6 +27,19 @@ for id, def in pairs(uDefs) do
 	if ca and ca < cruiseOrbit then
 		allAir[id] = def
 	end
+end
+
+--See alldefs_post.lua
+local function getMass(def)
+	local mass = def.mass or math.max(def.metalcost or 1, ((def.health or 6) / 6))
+	if (def.metalcost or 1) < 751 and mass > 750 then
+		mass = 750
+	end
+	return mass
+end
+
+local function canTransport(def)
+	return def and not (def.cantbetransported or math.min(def.footprintx or 1, def.footprintz or 1) > 4 or getMass(def) > 100000)
 end
 
 local function round10(n)
@@ -234,7 +247,7 @@ if tweakAirTrans then
 			if allAir[id] and def.transportcapacity then
 				def.isfireplatform = true
 			end
-		elseif def.canmove and not def.cantbetransported and not (not slowComm and def[cps] and def[cps].iscommander and (tonumber(def[cps].evocomlvl) or 0) <= 1) then
+		elseif def.canmove and canTransport(def) and not (not slowComm and def[cps] and def[cps].iscommander and (tonumber(def[cps].evocomlvl) or 0) <= 1) then
 			def[cps] = def[cps] or {}
 			def[cps].paratrooper = true
 			local fdm = 'fall_damage_multiplier'
@@ -244,12 +257,7 @@ if tweakAirTrans then
 					def[cps]['water_'..fdm] = 0
 					def.cantbetransported = nil
 				else
-					--See alldefs_post.lua
-					local mass = def.mass or math.max(def.metalcost or 1, ((def.health or 6) / 6))
-					if (def.metalcost or 1) < 751 and mass > 750 then
-						mass = 750
-					end
-					def[cps][fdm] = 0.125 + 0.125 * math.min(3, math.max(1, mass / 750)) --0.25 to 0.5
+					def[cps][fdm] = 0.125 + 0.125 * math.min(3, math.max(1, getMass(def) / 750)) --0.25 to 0.5
 					if def[mvc] then
 						for k, v in pairs(amph) do
 							if string.find(def[mvc], v) then
